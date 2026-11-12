@@ -1,0 +1,474 @@
+﻿Changed database context to 'master'.
+Changed database context to 'StockFlow'.
+DDL aplicado correctamente: 23 tablas.
+Changed database context to 'StockFlow'.
+--- Sucursales ---
+--- Empleados ---
+--- Categorias (jerarquicas) ---
+--- Marcas ---
+--- Productos ---
+--- Historial de precios (uno vigente por producto) ---
+--- Depositos ---
+--- Stock por producto y deposito (relacion N:M) ---
+--- Proveedores ---
+--- Telefonos de proveedor (multivaluado) ---
+--- Que provee cada proveedor (N:M SUMINISTRA) ---
+--- Ordenes de compra ---
+--- Movimientos de stock (FK compuesta contra Stock) ---
+--- Clientes ---
+--- Pedidos ---
+--- Facturas (1:1 con pedido, solo los entregados y confirmados) ---
+--- Medios de pago ---
+--- Pagos (parciales y en varios medios sobre la misma factura) ---
+--- AE4: productos para casos limite ---
+--- AE4: clientes para casos limite ---
+--- Recuento de filas cargadas ---
+Tabla|Filas
+-----|-----
+Categoria|7
+Cliente|7
+ClienteDireccion|7
+ClienteTelefono|7
+Deposito|4
+Empleado|8
+Factura|4
+Marca|6
+MedioPago|5
+MovimientoStock|10
+OrdenCompra|4
+OrdenCompraDetalle|8
+Pago|4
+Pedido|5
+PedidoDetalle|10
+PedidoEstadoHistorial|0
+Producto|14
+ProductoPrecio|17
+Proveedor|4
+ProveedorProducto|15
+ProveedorTelefono|7
+Stock|21
+Sucursal|3
+Datos de prueba cargados.
+Changed database context to 'StockFlow'.
+==================================================================
+ PRUEBAS NEGATIVAS: cada INSERT/UPDATE de abajo DEBE ser rechazado
+==================================================================
+OK   T01 PK compuesta duplicada rechazada -> Violation of PRIMARY KEY constraint 'PK_Stock'. Cannot insert duplicate key in object 'dbo.Stock'. The duplicate key value is (1, 1).
+OK   T02 FK a Categoria inexistente rechazada -> The INSERT statement conflicted with the FOREIGN KEY constraint "FK_Producto_Categoria". The conflict occurred in database "StockFlow", table "dbo.Categoria", column 'CategoriaId'.
+OK   T03 FK compuesta a Stock rechazada -> The INSERT statement conflicted with the FOREIGN KEY constraint "FK_Movimiento_Stock". The conflict occurred in database "StockFlow", table "dbo.Stock".
+OK   T04 Direccion de otro cliente rechazada -> The INSERT statement conflicted with the FOREIGN KEY constraint "FK_Pedido_ClienteDireccion". The conflict occurred in database "StockFlow", table "dbo.ClienteDireccion".
+OK   T05 Estado invalido rechazado -> The UPDATE statement conflicted with the CHECK constraint "CK_Pedido_Estado". The conflict occurred in database "StockFlow", table "dbo.Pedido", column 'Estado'.
+OK   T06 Stock negativo rechazado -> The UPDATE statement conflicted with the CHECK constraint "CK_Stock_Cantidad". The conflict occurred in database "StockFlow", table "dbo.Stock", column 'Cantidad'.
+OK   T07 CantidadRecibida > Cantidad rechazada -> The UPDATE statement conflicted with the CHECK constraint "CK_OCD_Recibida". The conflict occurred in database "StockFlow", table "dbo.OrdenCompraDetalle".
+OK   T08 FechaHasta < FechaDesde rechazada -> The INSERT statement conflicted with the CHECK constraint "CK_ProductoPrecio_Periodo". The conflict occurred in database "StockFlow", table "dbo.ProductoPrecio".
+OK   T09 Mostrador con direccion rechazado -> The INSERT statement conflicted with the CHECK constraint "CK_Pedido_Envio". The conflict occurred in database "StockFlow", table "dbo.Pedido".
+OK   T10 Pedido web sin direccion rechazado -> The INSERT statement conflicted with the CHECK constraint "CK_Pedido_Envio". The conflict occurred in database "StockFlow", table "dbo.Pedido".
+OK   T11 SKU duplicado rechazado -> Violation of UNIQUE KEY constraint 'UQ_Producto_Sku'. Cannot insert duplicate key in object 'dbo.Producto'. The duplicate key value is (MO-LOG-001).
+OK   T12 Documento duplicado rechazado -> Violation of UNIQUE KEY constraint 'UQ_Cliente_Doc'. Cannot insert duplicate key in object 'dbo.Cliente'. The duplicate key value is (DNI, 32145678).
+OK   T13 Segunda factura del mismo pedido rechazada -> Violation of UNIQUE KEY constraint 'UQ_Factura_Pedido'. Cannot insert duplicate key in object 'dbo.Factura'. The duplicate key value is (1).
+OK   T14 Numeracion fiscal repetida rechazada -> Violation of UNIQUE KEY constraint 'UQ_Factura_Numeracion'. Cannot insert duplicate key in object 'dbo.Factura'. The duplicate key value is (A, 1, 1001).
+OK   T15 Segundo precio vigente rechazado -> Cannot insert duplicate key row in object 'dbo.ProductoPrecio' with unique index 'UX_ProductoPrecio_Vigente'. The duplicate key value is (3).
+OK   T16 Segundo proveedor preferido rechazado -> Cannot insert duplicate key row in object 'dbo.ProveedorProducto' with unique index 'UX_ProveedorProducto_Preferido'. The duplicate key value is (1).
+OK   T17 NOT NULL rechazado -> Cannot insert the value NULL into column 'Nombre', table 'StockFlow.dbo.Cliente'; column does not allow nulls. INSERT fails.
+OK   T18 Autosupervision rechazada -> The UPDATE statement conflicted with the CHECK constraint "CK_Empleado_NoAutoSupervision". The conflict occurred in database "StockFlow", table "dbo.Empleado".
+OK   T19 CUIT invalido rechazado -> The INSERT statement conflicted with the CHECK constraint "CK_Proveedor_Cuit". The conflict occurred in database "StockFlow", table "dbo.Proveedor", column 'Cuit'.
+OK   T20 DELETE restringido por FK -> The DELETE statement conflicted with the REFERENCE constraint "FK_ProveedorProducto_Producto". The conflict occurred in database "StockFlow", table "dbo.ProveedorProducto", column 'ProductoId'.
+OK   T21 Alicuota invalida rechazada -> The INSERT statement conflicted with the CHECK constraint "CK_Factura_Iva". The conflict occurred in database "StockFlow", table "dbo.Factura", column 'AlicuotaIva'.
+ 
+==================================================================
+ PRUEBAS POSITIVAS: operaciones validas (se deshacen con ROLLBACK)
+==================================================================
+T22 Cascada Pedido->PedidoDetalle: renglones antes=1 despues=0  OK
+T23 Cascada Cliente->Telefonos/Direcciones: telefonos 1->0, direcciones 1->0  OK
+Prueba|Neto|AlicuotaIva|TotalFactura|Esperado|Resultado
+------|----|-----------|------------|--------|---------
+T24 columna calculada|100000.00|10.50|110500.0000|110500.0000|OK
+Prueba|PedidoId|NetoCalculado|TotalFactura
+------|--------|-------------|------------
+T25 alta completa|9|235500.00|284955.0000
+T26 Dos clientes nuevos sin email aceptados: 4 clientes sin email en total  OK
+ 
+==================================================================
+ CONSULTAS DE VERIFICACION DEL MODELO
+==================================================================
+Consulta|ProductoId|Sku|Nombre|StockTotal
+--------|----------|---|------|----------
+V1 StockTotal por producto|9|AA-BGH-001|Aire BGH Silent Air 3500W|11.000
+V1 StockTotal por producto|13|IM-SAM-003|Impresora Samsung Xpress M2020|.000
+V1 StockTotal por producto|12|MC-SAM-002|Microondas Samsung MG23|16.000
+V1 StockTotal por producto|5|MN-SAM-001|Monitor Samsung 24" F24T350|40.000
+V1 StockTotal por producto|3|MO-LOG-001|Mouse Logitech M170|249.000
+V1 StockTotal por producto|1|NB-LEN-001|Notebook Lenovo IdeaPad 3 15"|30.000
+V1 StockTotal por producto|2|NB-LEN-002|Notebook Lenovo ThinkPad E14|11.000
+V1 StockTotal por producto|11|PA-LIL-002|Pava electrica Liliana AP940|124.000
+V1 StockTotal por producto|8|RM-KIN-003|Memoria Kingston Fury 16GB|58.000
+V1 StockTotal por producto|6|SS-KIN-001|SSD Kingston NV2 1TB|95.000
+V1 StockTotal por producto|7|SS-KIN-002|SSD Kingston A400 480GB|168.000
+V1 StockTotal por producto|4|TE-LOG-002|Teclado Logitech K380|70.000
+V1 StockTotal por producto|10|VT-LIL-001|Ventilador Liliana VTF20|89.000
+V1 StockTotal por producto|14|WC-LOG-004|Webcam Logitech C920|.000
+Consulta|ProductoId|Sku|Nombre|DepositoId|Deposito|Cantidad|StockMinimo
+--------|----------|---|------|----------|--------|--------|-----------
+V2 Bajo minimo|9|AA-BGH-001|Aire BGH Silent Air 3500W|4|Deposito Obera|2.000|3.000
+V2 Bajo minimo|4|TE-LOG-002|Teclado Logitech K380|2|Deposito Salon CC|8.000|10.000
+Consulta|FacturaId|TotalFactura|Cobrado|SaldoPendiente|NroPedido|Apellido|Nombre
+--------|---------|------------|-------|--------------|---------|--------|------
+V3 Saldos|1|2768601.0000|2768601.00|.00|PED-2026-0001|Gomez|Martin
+V3 Saldos|2|98070.5000|98070.50|.00|PED-2026-0002|Sosa|Lucia
+V3 Saldos|3|1164383.0000|465753.20|698629.80|PED-2026-0003|Contable RS|Estudio
+V3 Saldos|4|413820.0000|.00|413820.00|PED-2026-0004|Paredes|Nicolas
+Consulta|Sku|PedidoId|PrecioUnitarioHistorico|PrecioVigenteHoy|Diferencia
+--------|---|--------|-----------------------|----------------|----------
+V4 Precio vigente vs cobrado|MN-SAM-001|1|198000.00|198000.00|.00
+V4 Precio vigente vs cobrado|NB-LEN-001|1|1050000.00|1050000.00|.00
+V4 Precio vigente vs cobrado|MO-LOG-001|2|11500.00|11500.00|.00
+V4 Precio vigente vs cobrado|TE-LOG-002|2|64500.00|64500.00|.00
+V4 Precio vigente vs cobrado|MN-SAM-001|3|198000.00|198000.00|.00
+V4 Precio vigente vs cobrado|RM-KIN-003|3|74000.00|74000.00|.00
+V4 Precio vigente vs cobrado|SS-KIN-001|3|112000.00|129000.00|-17000.00
+V4 Precio vigente vs cobrado|PA-LIL-002|4|42000.00|42000.00|.00
+V4 Precio vigente vs cobrado|VT-LIL-001|4|86000.00|86000.00|.00
+V4 Precio vigente vs cobrado|SS-KIN-002|5|58000.00|58000.00|.00
+Consulta|Nivel|Ruta
+--------|-----|----
+V5 Jerarquia de categorias|0|Electrohogar
+V5 Jerarquia de categorias|1|Electrohogar > Climatizacion
+V5 Jerarquia de categorias|1|Electrohogar > Cocina
+V5 Jerarquia de categorias|0|Informatica
+V5 Jerarquia de categorias|1|Informatica > Almacenamiento
+V5 Jerarquia de categorias|1|Informatica > Notebooks
+V5 Jerarquia de categorias|1|Informatica > Perifericos
+Consulta|FechaHora|Sku|Deposito|TipoMovimiento|Cantidad|Responsable|Motivo
+--------|---------|---|--------|--------------|--------|-----------|------
+V6 Kardex|2026-08-14 09:15:00|NB-LEN-001|Deposito Central|INGRESO|15.000|Fernandez|Recepcion OC-2026-0001
+V6 Kardex|2026-08-14 09:22:00|SS-KIN-001|Deposito Central|INGRESO|40.000|Fernandez|Recepcion OC-2026-0001
+V6 Kardex|2026-08-14 09:30:00|RM-KIN-003|Deposito Central|INGRESO|25.000|Fernandez|Recepcion OC-2026-0001
+V6 Kardex|2026-08-25 10:05:00|MO-LOG-001|Deposito Central|INGRESO|100.000|Fernandez|Recepcion OC-2026-0002
+V6 Kardex|2026-08-25 10:11:00|TE-LOG-002|Deposito Central|INGRESO|50.000|Fernandez|Recepcion OC-2026-0002
+V6 Kardex|2026-09-02 16:40:00|MO-LOG-001|Deposito Central|TRANSFER|25.000|Villalba|Traslado a salon
+V6 Kardex|2026-09-02 16:41:00|MO-LOG-001|Deposito Salon CC|INGRESO|25.000|Villalba|Traslado desde central
+V6 Kardex|2026-09-05 11:20:00|NB-LEN-001|Deposito Central|EGRESO|2.000|Fernandez|Venta PED-2026-0001
+V6 Kardex|2026-09-05 11:20:00|MN-SAM-001|Deposito Central|EGRESO|1.000|Fernandez|Venta PED-2026-0001
+V6 Kardex|2026-09-12 15:02:00|SS-KIN-002|Deposito Central|AJUSTE|3.000|Fernandez|Diferencia de inventario fisico
+Consulta|Sku|Nombre|RazonSocial|PrecioCompra|PlazoEntregaDias|EsPreferido
+--------|---|------|-----------|------------|----------------|-----------
+V7 Proveedores por producto|MC-SAM-002|Microondas Samsung MG23|Importadora Guarani SA|276000.00|20|1
+V7 Proveedores por producto|MC-SAM-002|Microondas Samsung MG23|Electro Litoral SRL|289000.00|9|0
+V7 Proveedores por producto|MN-SAM-001|Monitor Samsung 24" F24T350|TecnoMayorista SA|142000.00|8|1
+V7 Proveedores por producto|MN-SAM-001|Monitor Samsung 24" F24T350|Distribuidora Norte SRL|148500.00|4|0
+V7 Proveedores por producto|NB-LEN-001|Notebook Lenovo IdeaPad 3 15"|TecnoMayorista SA|760000.00|10|1
+V7 Proveedores por producto|NB-LEN-001|Notebook Lenovo IdeaPad 3 15"|Distribuidora Norte SRL|782000.00|5|0
+Consulta|Tipo|Cantidad
+--------|----|--------
+V8 Restricciones creadas|CHECK|47
+V8 Restricciones creadas|DEFAULT|29
+V8 Restricciones creadas|FOREIGN KEY|31
+V8 Restricciones creadas|INDICE UNICO FILTRADO|5
+V8 Restricciones creadas|PRIMARY KEY|23
+V8 Restricciones creadas|TABLAS|23
+V8 Restricciones creadas|UNIQUE|15
+Pruebas finalizadas. Revisar que ninguna linea empiece con FALLO.
+Changed database context to 'StockFlow'.
+Objetos programados creados: 3 funciones, 5 procedimientos, 5 triggers.
+Changed database context to 'StockFlow'.
+Vistas AE4 creadas: vw_CatalogoProductos, vw_StockPorDeposito, vw_ResumenVentasCliente.
+Changed database context to 'StockFlow'.
+--- M1.1 INSERT: datos de contacto del cliente 6 (antes sin telefono ni direccion) ---
+--- M1.2 UPDATE: el cliente 4 informa su email; se eleva el minimo del teclado en el salon ---
+--- M1.3 DELETE: telefono laboral dado de baja y acuerdo de suministro alternativo vencido ---
+--- M2 Recepcion de OC-2026-0003 (transaccion explicita) ---
+Momento|ProductoId|DepositoId|Cantidad
+-------|----------|----------|--------
+M2 antes|9|4|2.000
+M2 antes|10|4|18.000
+M2 COMMIT: orden recibida y stock actualizado por el trigger de kardex.
+Momento|ProductoId|DepositoId|Cantidad
+-------|----------|----------|--------
+M2 despues|9|4|8.000
+M2 despues|10|4|48.000
+--- M3 Transferencia entre depositos (transaccion explicita) ---
+Momento|Deposito|Sku|Cantidad|StockMinimo|EstadoStock
+-------|--------|---|--------|-----------|-----------
+M3 antes|Deposito Central|TE-LOG-002|62.000|20.000|OK
+M3 antes|Deposito Salon CC|TE-LOG-002|8.000|12.000|BAJO MINIMO
+M3 COMMIT: transferencia registrada.
+Momento|Deposito|Sku|Cantidad|StockMinimo|EstadoStock
+-------|--------|---|--------|-----------|-----------
+M3 despues|Deposito Central|TE-LOG-002|52.000|20.000|OK
+M3 despues|Deposito Salon CC|TE-LOG-002|18.000|12.000|OK
+--- M4 Actualizacion de precios con historial ---
+Consulta|ProductoId|FechaDesde|FechaHasta|PrecioVenta|PrecioCosto
+--------|----------|----------|----------|-----------|-----------
+M4 historial|3|2026-01-02|2026-11-11|11500.00|7200.00
+M4 historial|3|2026-11-12|NULL|12900.00|8100.00
+M4 historial|5|2026-01-02|2026-11-11|198000.00|142000.00
+M4 historial|5|2026-11-12|NULL|214000.00|142000.00
+--- M5.1 Venta WEB: pedido -> factura B -> pago total -> entrega ---
+Caso|NroPedido|Estado|TipoComprobante|NroComprobante|Neto|TotalFactura|Cobrado|SaldoPendiente
+----|---------|------|---------------|--------------|----|------------|-------|--------------
+M5.1|PED-2026-0006|ENTREGADO|B|1003|412800.00|499488.0000|499488.00|.00
+--- M5.2 Venta TELEFONO a empresa (factura A automatica) con cobranza parcial ---
+Caso|NroPedido|ProductoId|Cantidad|PrecioUnitarioHistorico|DescuentoPct|TipoComprobante|SaldoPendiente
+----|---------|----------|--------|-----------------------|------------|---------------|--------------
+M5.2|PED-2026-0007|1|1.000|1050000.00|.00|A|670370.25
+M5.2|PED-2026-0007|3|5.000|12900.00|10.00|A|670370.25
+--- M5.3 Venta de MOSTRADOR en Obera: pago en efectivo y entrega ---
+Caso|NroPedido|Estado|PuntoVenta|NroComprobante|TotalFactura
+----|---------|------|----------|--------------|------------
+M5.3|PED-2026-0008|ENTREGADO|3|2002|1172248.0000
+--- M5.4 Pedido TELEFONO que el cliente desiste: anulacion con reversion de stock ---
+Momento|ProductoId|Cantidad
+-------|----------|--------
+M5.4 stock antes|2|11.000
+M5.4 stock antes|7|140.000
+M5.4 stock antes|8|58.000
+Momento|ProductoId|Cantidad
+-------|----------|--------
+M5.4 stock con pedido|2|10.000
+M5.4 stock con pedido|7|130.000
+M5.4 stock con pedido|8|54.000
+Momento|ProductoId|Cantidad
+-------|----------|--------
+M5.4 stock despues de anular|2|11.000
+M5.4 stock despues de anular|7|140.000
+M5.4 stock despues de anular|8|58.000
+--- M6 Cierre de pedidos heredados ---
+Resumen|NroPedido|Canal|Estado|Cliente|NetoPedido|TipoComprobante|NroComprobante|SaldoPendiente
+-------|---------|-----|------|-------|----------|---------------|--------------|--------------
+Pedidos|PED-2026-0001|WEB|ENTREGADO|Gomez|2288100.00|A|1001|.00
+Pedidos|PED-2026-0002|MOSTRADOR|ENTREGADO|Sosa|81050.00|B|1002|.00
+Pedidos|PED-2026-0003|TELEFONO|ENTREGADO|Contable RS|962300.00|A|1003|698629.80
+Pedidos|PED-2026-0004|WEB|ENTREGADO|Paredes|342000.00|B|2001|213820.00
+Pedidos|PED-2026-0005|MOSTRADOR|CONFIRMADO|Kowalski|58000.00|B|1004|40180.00
+Pedidos|PED-2026-0006|WEB|ENTREGADO|Gomez|412800.00|B|1003|.00
+Pedidos|PED-2026-0007|TELEFONO|CONFIRMADO|del Litoral SA|1108050.00|A|1004|670370.25
+Pedidos|PED-2026-0008|MOSTRADOR|ENTREGADO|Sosa|968800.00|B|2002|.00
+Pedidos|PED-2026-0009|TELEFONO|CANCELADO|Contable RS|2456000.00|NULL|NULL|NULL
+Resumen|NroPedido|EstadoAnterior|EstadoNuevo|Usuario
+-------|---------|--------------|-----------|-------
+Historial de estados|PED-2026-0006|NULL|CONFIRMADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0006|CONFIRMADO|ENTREGADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0007|NULL|CONFIRMADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0008|NULL|CONFIRMADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0008|CONFIRMADO|ENTREGADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0009|NULL|CONFIRMADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0009|CONFIRMADO|CANCELADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0005|PENDIENTE|CONFIRMADO|DESKTOP-P3V2URB\Nahu
+Historial de estados|PED-2026-0004|CONFIRMADO|ENTREGADO|DESKTOP-P3V2URB\Nahu
+Manipulacion de datos finalizada.
+Changed database context to 'StockFlow'.
+Consulta|Sku|Nombre|UnidadMedida|PesoKg
+--------|---|------|------------|------
+C01|MN-SAM-001|Monitor Samsung 24" F24T350|UN|3.200
+C01|MO-LOG-001|Mouse Logitech M170|UN|.075
+C01|TE-LOG-002|Teclado Logitech K380|UN|.423
+C01|WC-LOG-004|Webcam Logitech C920|UN|NULL
+Consulta|ClienteId|Cliente|Email|FechaAlta
+--------|---------|-------|-----|---------
+C02|6|Benitez, Rocio|(sin email)|2026-10-20
+Consulta|NroPedido|Fecha|Cliente|Vendedor|Sucursal|Sku|Cantidad|PrecioUnitarioHistorico|DescuentoPct|Subtotal
+--------|---------|-----|-------|--------|--------|---|--------|-----------------------|------------|--------
+C03|PED-2026-0001|2026-09-05|Gomez, Martin|Ramirez|Casa Central|MN-SAM-001|1.000|198000.00|5.00|188100.00
+C03|PED-2026-0001|2026-09-05|Gomez, Martin|Ramirez|Casa Central|NB-LEN-001|2.000|1050000.00|.00|2100000.00
+C03|PED-2026-0002|2026-09-08|Sosa, Lucia|Ojeda|Sucursal Norte|MO-LOG-001|2.000|11500.00|.00|23000.00
+C03|PED-2026-0002|2026-09-08|Sosa, Lucia|Ojeda|Sucursal Norte|TE-LOG-002|1.000|64500.00|10.00|58050.00
+C03|PED-2026-0003|2026-09-15|Contable RS, Estudio|Ramirez|Casa Central|MN-SAM-001|2.000|198000.00|7.50|366300.00
+C03|PED-2026-0003|2026-09-15|Contable RS, Estudio|Ramirez|Casa Central|RM-KIN-003|2.000|74000.00|.00|148000.00
+C03|PED-2026-0003|2026-09-15|Contable RS, Estudio|Ramirez|Casa Central|SS-KIN-001|4.000|112000.00|.00|448000.00
+C03|PED-2026-0004|2026-09-24|Paredes, Nicolas|Maidana|Sucursal Obera|PA-LIL-002|2.000|42000.00|.00|84000.00
+C03|PED-2026-0004|2026-09-24|Paredes, Nicolas|Maidana|Sucursal Obera|VT-LIL-001|3.000|86000.00|.00|258000.00
+C03|PED-2026-0005|2026-09-29|Kowalski, Helena|Ojeda|Sucursal Norte|SS-KIN-002|1.000|58000.00|.00|58000.00
+C03|PED-2026-0006|2026-11-12|Gomez, Martin|Ramirez|Casa Central|MO-LOG-001|2.000|12900.00|.00|25800.00
+C03|PED-2026-0006|2026-11-12|Gomez, Martin|Ramirez|Casa Central|SS-KIN-001|3.000|129000.00|.00|387000.00
+C03|PED-2026-0007|2026-11-12|del Litoral SA, Tecnologias|Ojeda|Sucursal Norte|MO-LOG-001|5.000|12900.00|10.00|58050.00
+C03|PED-2026-0007|2026-11-12|del Litoral SA, Tecnologias|Ojeda|Sucursal Norte|NB-LEN-001|1.000|1050000.00|.00|1050000.00
+C03|PED-2026-0008|2026-11-12|Sosa, Lucia|Maidana|Sucursal Obera|MN-SAM-001|3.000|214000.00|.00|642000.00
+C03|PED-2026-0008|2026-11-12|Sosa, Lucia|Maidana|Sucursal Obera|VT-LIL-001|4.000|86000.00|5.00|326800.00
+Consulta|Sku|Nombre|PrecioVigente|StockTotal|Situacion
+--------|---|------|-------------|----------|---------
+C04|WC-LOG-004|Webcam Logitech C920|SIN PRECIO|.000|ACTIVO
+C04|IM-SAM-003|Impresora Samsung Xpress M2020|310000.00|.000|DISCONTINUADO
+Consulta|Pedidos|VentasNetas|TicketPromedio|TicketMinimo|TicketMaximo|UnidadesVendidas
+--------|-------|-----------|--------------|------------|------------|----------------
+C05|8|6221100.00|777637.500000|58000.00|2288100.00|38.000
+Consulta|Sucursal|Canal|Pedidos|VentasNetas|TicketPromedio
+--------|--------|-----|-------|-----------|--------------
+C06|Casa Central|WEB|2|2700900.00|1350450.000000
+C06|Casa Central|TELEFONO|1|962300.00|962300.000000
+C06|Sucursal Norte|TELEFONO|1|1108050.00|1108050.000000
+C06|Sucursal Norte|MOSTRADOR|2|139050.00|69525.000000
+C06|Sucursal Obera|MOSTRADOR|1|968800.00|968800.000000
+C06|Sucursal Obera|WEB|1|342000.00|342000.000000
+Consulta|Rubro|Categoria|Pedidos|Unidades|VentaNeta
+--------|-----|---------|-------|--------|---------
+C07|Informatica|Notebooks|2|3.000|3150000.00
+C07|Informatica|Perifericos|6|16.000|1361300.00
+C07|Informatica|Almacenamiento|3|10.000|1041000.00
+Consulta|ClienteId|Cliente|Pedidos|TotalComprado
+--------|---------|-------|-------|-------------
+C08|1|Gomez, Martin|2|2700900.00
+C08|2|Sosa, Lucia|2|1049850.00
+Consulta|Sku|Nombre|PrecioVenta|PromedioCatalogo
+--------|---|------|-----------|----------------
+C09|NB-LEN-002|Notebook Lenovo ThinkPad E14|1580000.00|404261.54
+C09|AA-BGH-001|Aire BGH Silent Air 3500W|1250000.00|404261.54
+C09|NB-LEN-001|Notebook Lenovo IdeaPad 3 15"|1050000.00|404261.54
+Consulta|Sku|Nombre|StockTotal
+--------|---|------|----------
+C10|AA-BGH-001|Aire BGH Silent Air 3500W|17.000
+C10|MC-SAM-002|Microondas Samsung MG23|16.000
+C10|NB-LEN-002|Notebook Lenovo ThinkPad E14|11.000
+C10|WC-LOG-004|Webcam Logitech C920|.000
+Consulta|RazonSocial|Sku|PrecioCompra|PlazoEntregaDias
+--------|-----------|---|------------|----------------
+C11|TecnoMayorista SA|MN-SAM-001|142000.00|8
+Consulta|Cliente|NroPedido|FechaPedido|Estado
+--------|-------|---------|-----------|------
+C12|del Litoral SA, Tecnologias|PED-2026-0007|2026-11-12 09:15:47|CONFIRMADO
+C12|Contable RS, Estudio|PED-2026-0009|2026-11-12 09:15:47|CANCELADO
+C12|Sosa, Lucia|PED-2026-0008|2026-11-12 09:15:47|ENTREGADO
+C12|Gomez, Martin|PED-2026-0006|2026-11-12 09:15:47|ENTREGADO
+C12|Kowalski, Helena|PED-2026-0005|2026-09-29 19:02:00|CONFIRMADO
+C12|Paredes, Nicolas|PED-2026-0004|2026-09-24 12:45:00|ENTREGADO
+Consulta|ClienteId|Cliente|Deuda|FacturasConSaldo
+--------|---------|-------|-----|----------------
+C13|3|Contable RS, Estudio|698629.80|1
+C13|7|del Litoral SA, Tecnologias|670370.25|1
+C13|4|Paredes, Nicolas|213820.00|1
+C13|5|Kowalski, Helena|40180.00|1
+Consulta|NroPedido|Fecha|Sku|PrecioCobrado|PrecioListaEseDia|PrecioListaHoy
+--------|---------|-----|---|-------------|-----------------|--------------
+C14|PED-2026-0001|2026-09-05|MN-SAM-001|198000.00|198000.00|214000.00
+C14|PED-2026-0002|2026-09-08|MO-LOG-001|11500.00|11500.00|12900.00
+C14|PED-2026-0003|2026-09-15|MN-SAM-001|198000.00|198000.00|214000.00
+C14|PED-2026-0003|2026-09-15|SS-KIN-001|112000.00|112000.00|129000.00
+Consulta|Sku|Central|SalonCC|Norte|Obera|Total
+--------|---|-------|-------|-----|-----|-----
+C15|MN-SAM-001|33.000|.000|.000|4.000|37.000
+C15|MO-LOG-001|178.000|25.000|39.000|.000|242.000
+C15|NB-LEN-001|24.000|.000|5.000|.000|29.000
+C15|NB-LEN-002|11.000|.000|.000|.000|11.000
+C15|RM-KIN-003|58.000|.000|.000|.000|58.000
+C15|SS-KIN-001|92.000|.000|.000|.000|92.000
+C15|SS-KIN-002|140.000|.000|28.000|.000|168.000
+C15|TE-LOG-002|52.000|18.000|.000|.000|70.000
+C15|WC-LOG-004|.000|.000|.000|.000|.000
+Consulta|Puesto|Sku|Unidades|VentaNeta|PorcentajeDelTotal
+--------|------|---|--------|---------|------------------
+C16|1|NB-LEN-001|3.000|3150000.00|50.63
+C16|2|MN-SAM-001|6.000|1196400.00|19.23
+C16|3|SS-KIN-001|7.000|835000.00|13.42
+C16|4|VT-LIL-001|7.000|584800.00|9.40
+C16|5|RM-KIN-003|2.000|148000.00|2.38
+C16|6|MO-LOG-001|9.000|106850.00|1.72
+C16|7|PA-LIL-002|2.000|84000.00|1.35
+C16|8|TE-LOG-002|1.000|58050.00|.93
+C16|9|SS-KIN-002|1.000|58000.00|.93
+Consulta|NroPedido|EstadoAnterior|EstadoNuevo|FechaHora
+--------|---------|--------------|-----------|---------
+C17 estados|PED-2026-0009|NULL|CONFIRMADO|2026-11-12 09:15:47
+C17 estados|PED-2026-0009|CONFIRMADO|CANCELADO|2026-11-12 09:15:47
+Consulta|NroPedido|TipoMovimiento|Sku|Cantidad|Motivo
+--------|---------|--------------|---|--------|------
+C17 kardex|PED-2026-0009|EGRESO|NB-LEN-002|1.000|Venta PED-2026-0009
+C17 kardex|PED-2026-0009|EGRESO|RM-KIN-003|4.000|Venta PED-2026-0009
+C17 kardex|PED-2026-0009|EGRESO|SS-KIN-002|10.000|Venta PED-2026-0009
+C17 kardex|PED-2026-0009|INGRESO|NB-LEN-002|1.000|Anulacion PED-2026-0009: El cliente desiste de la compra
+C17 kardex|PED-2026-0009|INGRESO|SS-KIN-002|10.000|Anulacion PED-2026-0009: El cliente desiste de la compra
+C17 kardex|PED-2026-0009|INGRESO|RM-KIN-003|4.000|Anulacion PED-2026-0009: El cliente desiste de la compra
+Consulta|Sku|Producto|Categoria|Marca|PrecioVigente|StockTotal|ProveedorPreferido
+--------|---|--------|---------|-----|-------------|----------|------------------
+C18 catalogo|RM-KIN-003|Memoria Kingston Fury 16GB|Almacenamiento|Kingston|74000.00|58.000|TecnoMayorista SA
+C18 catalogo|SS-KIN-002|SSD Kingston A400 480GB|Almacenamiento|Kingston|58000.00|168.000|TecnoMayorista SA
+C18 catalogo|SS-KIN-001|SSD Kingston NV2 1TB|Almacenamiento|Kingston|129000.00|92.000|TecnoMayorista SA
+C18 catalogo|AA-BGH-001|Aire BGH Silent Air 3500W|Climatizacion|BGH|1250000.00|17.000|Electro Litoral SRL
+C18 catalogo|VT-LIL-001|Ventilador Liliana VTF20|Climatizacion|Liliana|86000.00|115.000|Electro Litoral SRL
+C18 catalogo|MC-SAM-002|Microondas Samsung MG23|Cocina|Samsung|385000.00|16.000|Importadora Guarani SA
+C18 catalogo|PA-LIL-002|Pava electrica Liliana AP940|Cocina|Liliana|42000.00|124.000|Electro Litoral SRL
+C18 catalogo|NB-LEN-001|Notebook Lenovo IdeaPad 3 15"|Notebooks|Lenovo|1050000.00|29.000|TecnoMayorista SA
+C18 catalogo|NB-LEN-002|Notebook Lenovo ThinkPad E14|Notebooks|Lenovo|1580000.00|11.000|TecnoMayorista SA
+C18 catalogo|MN-SAM-001|Monitor Samsung 24" F24T350|Perifericos|Samsung|214000.00|37.000|TecnoMayorista SA
+C18 catalogo|MO-LOG-001|Mouse Logitech M170|Perifericos|Logitech|12900.00|242.000|Distribuidora Norte SRL
+C18 catalogo|TE-LOG-002|Teclado Logitech K380|Perifericos|Logitech|64500.00|70.000|Distribuidora Norte SRL
+C18 catalogo|WC-LOG-004|Webcam Logitech C920|Perifericos|Logitech|-|.000|(sin proveedor preferido)
+Consulta|Cliente|Documento|Email|CantidadPedidos|TotalComprado|UltimaCompra|SaldoPendiente
+--------|-------|---------|-----|---------------|-------------|------------|--------------
+C18 cartera|Gomez, Martin|DNI 32145678|mgomez@mail.com|2|2700900.00|2026-11-12 09:15:47|.00
+C18 cartera|del Litoral SA, Tecnologias|CUIT 30715559991|compras@tecnolitoral.com.ar|1|1108050.00|2026-11-12 09:15:47|670370.25
+C18 cartera|Sosa, Lucia|DNI 27998877|lsosa@mail.com|2|1049850.00|2026-11-12 09:15:47|.00
+C18 cartera|Contable RS, Estudio|CUIT 20345678901|admin@estudiors.com.ar|1|962300.00|2026-09-15 10:12:00|698629.80
+C18 cartera|Paredes, Nicolas|DNI 40112233|nparedes@mail.com|1|342000.00|2026-09-24 12:45:00|213820.00
+C18 cartera|Kowalski, Helena|PAS AB1234567|hkowalski@mail.com|1|58000.00|2026-09-29 19:02:00|40180.00
+C18 cartera|Benitez, Rocio|DNI 35111222|(sin email)|0|.00|NULL|.00
+C19 ordenes de compra anuladas: 1
+Consulta|NroOrden|FechaEmision|Estado
+--------|--------|------------|------
+C19|OC-2026-0001|2026-08-04|RECIBIDA
+C19|OC-2026-0002|2026-08-20|RECIBIDA
+C19|OC-2026-0003|2026-09-10|RECIBIDA
+C19|OC-2026-0004|2026-09-22|ANULADA
+C20 telefonos de fax eliminados: 1
+Consulta|ProveedorId|NroTelefono|Telefono|Tipo
+--------|-----------|-----------|--------|----
+C20|1|1|0376-4451122|PRINCIPAL
+C20|1|2|0376-154778899|WHATSAPP
+C20|2|1|011-47883322|PRINCIPAL
+C20|3|1|0342-4559988|PRINCIPAL
+C20|4|1|03757-422110|PRINCIPAL
+C20|4|2|03757-422111|ALTERNATIVO
+Consultas finalizadas.
+Changed database context to 'StockFlow'.
+Prueba|Objeto|Descripcion|Esperado|Obtenido|Resultado|Mensaje
+------|------|-----------|--------|--------|---------|-------
+F1-01|fn_PrecioVigente|Precio del producto 1 en dos periodos distintos y de un producto sin precio|0|0|OK|15/03: 890000.00; 01/07: 1050000.00; producto 14: NULL
+F2-01|fn_StockDisponible|Stock total coincide con SUM(Stock) y par inexistente devuelve 0 (no NULL)|0|0|OK|total producto 3: 242.000; SUM directo: 242.000; producto 2 en deposito 4: 0.000
+F3-01|fn_TotalCompradoCliente|Suma pedidos no cancelados; cliente sin pedidos devuelve 0|0|0|OK|cliente 1: 2700900.00; cliente 3 (con un pedido cancelado): 962300.00; cliente 6: 0.00
+P1-01|sp_RegistrarPedido|Cliente inexistente|50001|50001|OK|El cliente no existe o esta inactivo.
+P1-02|sp_RegistrarPedido|Empleado de deposito intenta registrar una venta|50002|50002|OK|El empleado no existe, esta inactivo o su rol no le permite registrar ventas.
+P1-03|sp_RegistrarPedido|Vendedor de Sucursal Norte vende en Casa Central|50003|50003|OK|El empleado no pertenece a la sucursal indicada.
+P1-04|sp_RegistrarPedido|Despacho desde un deposito de otra sucursal|50004|50004|OK|El deposito de despacho no pertenece a la sucursal indicada.
+P1-05|sp_RegistrarPedido|Pedido WEB con la direccion de otro cliente|50005|50005|OK|Los pedidos WEB y TELEFONO requieren una direccion de envio registrada del cliente.
+P1-06|sp_RegistrarPedido|Detalle del pedido vacio|50006|50006|OK|Todo pedido debe contener al menos un renglon (RN08).
+P1-07|sp_RegistrarPedido|Renglon con cantidad cero|50007|50007|OK|Cada renglon requiere ProductoId, Cantidad > 0 y un descuento entre 0 y 100.
+P1-08|sp_RegistrarPedido|Producto repetido en el mismo pedido|50007|50007|OK|Un producto no puede repetirse en el mismo pedido: unifique las cantidades.
+P1-09|sp_RegistrarPedido|Venta de un producto discontinuado|50008|50008|OK|El producto 13 no existe o esta discontinuado.
+P1-10|sp_RegistrarPedido|Venta de un producto sin precio vigente|50009|50009|OK|El producto WC-LOG-004 no tiene precio vigente.
+P1-11|sp_RegistrarPedido|Stock insuficiente en el segundo renglon|50010|50010|OK|Stock insuficiente de AA-BGH-001 en el deposito: disponible 9, solicitado 50.
+P1-12|sp_RegistrarPedido|Atomicidad: tras el rechazo no quedan pedido, renglones ni movimientos parciales|0|0|OK|pedidos 9->9; stock mouse 178.000->178.000; movimientos 26->26
+P1-13|sp_RegistrarPedido|Alta valida: descuenta stock, fija precio vigente, audita y genera kardex|0|0|OK|PED-2026-0010: stock 44.000->42.000; precio 86000.00; historial 1; movimientos 1
+P2-01|sp_FacturarPedido|Facturar un pedido inexistente|50021|50021|OK|El pedido no existe.
+P2-02|sp_FacturarPedido|Facturar un pedido cancelado|50022|50022|OK|Solo se facturan pedidos CONFIRMADOS o ENTREGADOS.
+P2-03|sp_FacturarPedido|Segunda factura para el mismo pedido|50023|50023|OK|El pedido ya tiene factura emitida (relacion 1:1).
+P2-04|sp_FacturarPedido|Neto de todas las facturas = total del detalle; cliente con CUIT recibe factura A|0|0|OK|facturas con diferencia: 0; tipo emitido a cliente CUIT: A
+P3-01|sp_RegistrarPago|Pago con monto cero|50033|50033|OK|El monto del pago debe ser mayor que cero.
+P3-02|sp_RegistrarPago|Pago que excede el saldo de la factura|50131|50131|OK|El pago excede el saldo de la factura A-0001-00001004: total 1340740.50, cobrado 1370370.25.
+T4-01|trg_Pago_ControlarSaldo|INSERT directo (sin procedimiento) sobre una factura ya cancelada|50131|50131|OK|El pago excede el saldo de la factura A-0001-00001001: total 2768601.00, cobrado 2768602.00.
+P3-03|sp_RegistrarPago|Pago exacto del saldo: numeracion correlativa y saldo cero|0|0|OK|pago nro 2 por 670370.25; saldo final 0.0000
+P4-01|sp_ActualizarPrecioProducto|Precio igual al vigente|50044|50044|OK|El precio informado es igual al vigente: no hay cambio que registrar.
+P4-02|sp_ActualizarPrecioProducto|Precio con vigencia futura|50043|50043|OK|No se admiten precios con vigencia futura.
+P4-03|sp_ActualizarPrecioProducto|Segundo cambio de precio el mismo dia|50045|50045|OK|La nueva vigencia debe comenzar al menos dos dias despues del inicio del precio vigente.
+T5-01|trg_ProductoPrecio_Proteger|UPDATE directo del precio vigente (pisar el valor)|50142|50142|OK|El historial de precios es inalterable: solo puede cerrarse el periodo vigente. Use dbo.sp_ActualizarPrecioProducto.
+T5-02|trg_ProductoPrecio_Proteger|Modificar un periodo de precio ya cerrado|50142|50142|OK|El historial de precios es inalterable: solo puede cerrarse el periodo vigente. Use dbo.sp_ActualizarPrecioProducto.
+T5-03|trg_ProductoPrecio_Proteger|Eliminar el historial de precios de un producto|50141|50141|OK|El historial de precios no admite eliminaciones. Para discontinuar un producto use Producto.Activo = 0.
+P4-04|sp_ActualizarPrecioProducto|Historial consistente: un solo precio vigente y periodos contiguos sin huecos|0|0|OK|productos con 2+ vigentes: 0; periodos no contiguos: 0
+P5-01|sp_CancelarPedido|Cancelar un pedido facturado|50053|50053|OK|El pedido esta facturado: requiere nota de credito, no cancelacion.
+P5-02|sp_CancelarPedido|Cancelar un pedido ya cancelado|50052|50052|OK|Solo pueden cancelarse pedidos PENDIENTES o CONFIRMADOS.
+P5-03|sp_CancelarPedido|El pedido anulado deja saldo neto cero en el kardex (egresos revertidos)|0|0|OK|movimientos del pedido: 6; pares con saldo distinto de cero: 0
+T1-01|trg_MovimientoStock_Kardex|Modificar un movimiento de kardex|50101|50101|OK|El kardex es inalterable: los movimientos de stock no se modifican ni se eliminan. Registre un movimiento compensatorio.
+T1-02|trg_MovimientoStock_Kardex|Eliminar un movimiento de kardex|50101|50101|OK|El kardex es inalterable: los movimientos de stock no se modifican ni se eliminan. Registre un movimiento compensatorio.
+T1-03|trg_MovimientoStock_Kardex|Egreso mayor que la existencia del deposito|50102|50102|OK|Stock insuficiente: producto AA-BGH-001 en Deposito Central tiene 9 unidades y el movimiento requiere 1000.
+T1-04|trg_MovimientoStock_Kardex|INGRESO suma y AJUSTE resta automaticamente sobre Stock|0|0|OK|stock 178.000 -> INGRESO 5 -> 183.000 -> AJUSTE 2 -> 181.000
+T2-01|trg_Stock_ControlarExistencias|UPDATE directo de Stock.Cantidad (sin kardex)|50111|50111|OK|Stock.Cantidad no se modifica directamente: registre un movimiento en MovimientoStock (INGRESO, EGRESO, TRANSFER o AJUSTE).
+T2-02|trg_Stock_ControlarExistencias|Alta de stock con cantidad inicial distinta de cero|50111|50111|OK|Stock.Cantidad no se modifica directamente: registre un movimiento en MovimientoStock (INGRESO, EGRESO, TRANSFER o AJUSTE).
+T2-03|trg_Stock_ControlarExistencias|Ingreso que supera la capacidad del deposito (RN07 de AE1)|50112|50112|OK|Capacidad excedida en Deposito Salon CC: ocupacion resultante 557 sobre una capacidad maxima de 400 unidades.
+T2-04|trg_Stock_ControlarExistencias|Tras el rechazo por capacidad el movimiento y el stock se revierten|0|0|OK|stock mouse en salon: 25.000 -> 25.000
+T2-05|trg_Stock_ControlarExistencias|Alta de un producto en un deposito con cantidad 0|0|0|OK|alta del par (producto 2, deposito 4) con cantidad 0 aceptada
+T3-01|trg_Pedido_ControlarEstado|Retroceder un pedido ENTREGADO a PENDIENTE|50121|50121|OK|Transicion de estado no permitida en PED-2026-0001: ENTREGADO -> PENDIENTE.
+T3-02|trg_Pedido_ControlarEstado|Entregar un pedido sin factura|50122|50122|OK|El pedido PED-2026-0010 no puede entregarse sin factura emitida.
+T3-03|trg_Pedido_ControlarEstado|Cancelar por UPDATE un pedido facturado|50123|50123|OK|El pedido PED-2026-0007 esta facturado y no puede cancelarse.
+T3-04|trg_Pedido_ControlarEstado|Cancelar por UPDATE sin revertir el stock egresado|50124|50124|OK|El pedido PED-2026-0010 tiene stock egresado sin revertir: anulelo con dbo.sp_CancelarPedido.
+T3-05|trg_Pedido_ControlarEstado|Auditoria: el historial registra el alta y cada cambio de estado|0|0|OK|alta->CONFIRMADO ; CONFIRMADO->CANCELADO
+Pruebas|Correctas|Fallidas
+-------|---------|--------
+48|48|0
+Pruebas de programacion finalizadas. Revisar que la columna Fallidas sea 0.
