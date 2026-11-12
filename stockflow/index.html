@@ -758,7 +758,10 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const plural = (n, uno, varios) => `${qty(n)} ${Number(n) === 1 ? uno : varios}`;
 function fecha(s) {
     if (!s) return '—';
-    const d = new Date(String(s).replace(' ', 'T'));
+    // Una fecha sola ("2026-11-12") se interpreta como hora local; si no, JavaScript
+    // la toma en UTC y en Argentina (UTC-3) se mostraría el día anterior.
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(String(s).replace(' ', 'T'));
     return isNaN(d) ? esc(s) : d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 // Los mensajes del THROW ya están en castellano; se quitan referencias internas como "(RN08)".
