@@ -1,24 +1,15 @@
 <?php
-// C:\xampp\htdocs\stockflow\api\productos.php
+// GET: catalogo de productos activos (vista vw_CatalogoProductos).
 require_once '../conexion.php';
 
 try {
-    $query = "SELECT p.ProductoId, p.Nombre AS Producto, c.Nombre AS Categoria, 
-                     pr.RazonSocial AS Proveedor, p.Precio, 
-                     COALESCE(SUM(s.CantidadStock), 0) AS StockTotal
-              FROM PRODUCTOS p
-              INNER JOIN CATEGORIAS c ON p.CategoriaId = c.CategoriaId
-              INNER JOIN PROVEEDORES pr ON p.ProveedorId = pr.ProveedorId
-              LEFT JOIN STOCK_DEPOSITO s ON p.ProductoId = s.ProductoId
-              GROUP BY p.ProductoId, p.Nombre, c.Nombre, pr.RazonSocial, p.Precio
-              ORDER BY p.ProductoId ASC";
-              
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
-    $productos = $stmt->fetchAll();
-
-    echo json_encode(["status" => "success", "data" => $productos]);
+    $stmt = $conn->query(
+        "SELECT ProductoId, Sku, Producto, Categoria, Marca, PrecioVigente, StockTotal, ProveedorPreferido
+         FROM dbo.vw_CatalogoProductos
+         WHERE Activo = 1
+         ORDER BY Categoria, Producto");
+    echo json_encode(["status" => "success", "data" => $stmt->fetchAll()]);
 } catch (PDOException $e) {
-    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    respuesta_error($e);
 }
 ?>

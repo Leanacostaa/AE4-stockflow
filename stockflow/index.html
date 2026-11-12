@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockFlow | Control & Gestión de Base de Datos (AE4 UCP)</title>
+    <title>StockFlow | Gestión de stock y ventas (AE4 UCP)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,80 +13,50 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed',
-                            700: '#6d28d9',
-                            900: '#4c1d95',
-                            dark: '#0f0c1b',
-                            card: '#181528',
-                            border: '#2a2444'
+                            50: '#f5f3ff', 100: '#ede9fe', 400: '#a78bfa', 500: '#8b5cf6',
+                            600: '#7c3aed', 700: '#6d28d9', 900: '#4c1d95',
+                            dark: '#0f0c1b', card: '#181528', border: '#2a2444'
                         }
                     }
                 }
             }
         }
     </script>
-    <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0b0914;
-            color: #e2e8f0;
-        }
-        .code-font {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #131021;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #2e264f;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #6d28d9;
-        }
-        .glow-purple {
-            box-shadow: 0 0 20px -5px rgba(139, 92, 246, 0.3);
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #0b0914; color: #e2e8f0; }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #131021; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2e264f; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6d28d9; }
+        .glow-purple { box-shadow: 0 0 20px -5px rgba(139, 92, 246, 0.3); }
+        .field { width: 100%; background: #110e1d; border: 1px solid #2a2444; border-radius: 0.75rem; padding: 0.6rem 1rem; font-size: 0.875rem; color: #e5e7eb; }
+        .field:focus { outline: none; border-color: #8b5cf6; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col custom-scrollbar">
 
-    <!-- Top Navigation Bar -->
+    <!-- Barra superior -->
     <header class="bg-brand-card/90 backdrop-blur border-b border-brand-border sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <!-- Logo & Subtitle -->
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-purple-500/30">
                         <i class="fa-solid fa-boxes-stacked"></i>
                     </div>
                     <div>
                         <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent">StockFlow</span>
-                        <span class="hidden sm:inline-block text-xs px-2 py-0.5 ml-2 rounded-full bg-purple-950 text-purple-300 border border-purple-800/50">AE4 MySQL 8.0</span>
+                        <span class="hidden sm:inline-block text-xs px-2 py-0.5 ml-2 rounded-full bg-purple-950 text-purple-300 border border-purple-800/50">AE4 · SQL Server 2022</span>
                     </div>
                 </div>
-
-                <!-- DB Status Badge -->
                 <div class="flex items-center space-x-4">
-                    <div class="hidden md:flex items-center space-x-2 text-xs bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 px-3 py-1.5 rounded-full">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="font-mono">MySQL 8.0: TiendaSimpleDB (Conectado)</span>
+                    <div id="dbStatus" class="hidden md:flex items-center space-x-2 text-xs bg-gray-900/60 text-gray-400 border border-gray-700/40 px-3 py-1.5 rounded-full">
+                        <span id="dbStatusDot" class="w-2 h-2 rounded-full bg-gray-500"></span>
+                        <span id="dbStatusText" class="font-mono">StockFlow: conectando…</span>
                     </div>
-
-                    <!-- Cart Toggle Button -->
-                    <button id="cartBtn" onclick="toggleCartModal()" class="relative p-2 text-gray-300 hover:text-white bg-brand-border/40 hover:bg-brand-border rounded-lg transition-colors">
+                    <button id="cartBtn" onclick="toggleCartModal()" class="relative p-2 text-gray-300 hover:text-white bg-brand-border/40 hover:bg-brand-border rounded-lg transition-colors" aria-label="Carrito">
                         <i class="fa-solid fa-cart-shopping text-lg"></i>
                         <span id="cartBadge" class="hidden absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
                     </button>
@@ -95,373 +65,237 @@
         </div>
     </header>
 
-    <!-- Main Navigation Tabs -->
+    <!-- Pestañas -->
     <nav class="bg-[#110e1d] border-b border-brand-border/60 sticky top-16 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex space-x-1 overflow-x-auto custom-scrollbar py-2 text-sm font-medium">
                 <button onclick="switchTab('tab-tienda')" id="nav-tab-tienda" class="nav-tab text-purple-400 bg-brand-card border border-purple-500/30 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-all">
-                    <i class="fa-solid fa-store"></i> Catálogo & Tienda
+                    <i class="fa-solid fa-store"></i> Catálogo
                 </button>
                 <button onclick="switchTab('tab-inventario')" id="nav-tab-inventario" class="nav-tab text-gray-400 hover:text-gray-200 hover:bg-brand-card/50 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-all">
-                    <i class="fa-solid fa-warehouse"></i> Inventario & Depósitos
+                    <i class="fa-solid fa-warehouse"></i> Stock por depósito
                 </button>
                 <button onclick="switchTab('tab-procedure')" id="nav-tab-procedure" class="nav-tab text-gray-400 hover:text-gray-200 hover:bg-brand-card/50 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-all">
-                    <i class="fa-solid fa-terminal"></i> Registrar Pedido (SP)
+                    <i class="fa-solid fa-terminal"></i> Registrar venta (SP)
                 </button>
-                <button onclick="switchTab('tab-trigger')" id="nav-tab-trigger" class="nav-tab text-gray-400 hover:text-gray-200 hover:bg-brand-card/50 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-all">
-                    <i class="fa-solid fa-bolt text-amber-400"></i> Auditoría Precios (Trigger)
+                <button onclick="switchTab('tab-precios')" id="nav-tab-precios" class="nav-tab text-gray-400 hover:text-gray-200 hover:bg-brand-card/50 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-all">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Precios (SP + trigger)
                 </button>
                 <button onclick="switchTab('tab-reportes')" id="nav-tab-reportes" class="nav-tab text-gray-400 hover:text-gray-200 hover:bg-brand-card/50 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-all">
-                    <i class="fa-solid fa-chart-pie"></i> Reportes & Vistas (vw_*)
+                    <i class="fa-solid fa-chart-pie"></i> Cartera de clientes (vista)
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
 
-        <!-- ================= SECCIÓN 1: CATÁLOGO DE PRODUCTOS ================= -->
+        <!-- ============ 1. CATÁLOGO (vw_CatalogoProductos) ============ -->
         <section id="tab-tienda" class="tab-content block space-y-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-brand-card p-6 rounded-2xl border border-brand-border">
                 <div>
-                    <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-                        Catálogo de Tecnología
-                    </h1>
-                    <p class="text-gray-400 text-sm mt-1">Gestión directa de productos e inserción simulada en la orden de compra.</p>
+                    <h1 class="text-2xl font-bold text-white">Catálogo de productos</h1>
+                    <p class="text-gray-400 text-sm mt-1">Datos de la vista <code class="code-font text-purple-300">vw_CatalogoProductos</code>: precio vigente (historial de precios) y stock total (suma por depósito).</p>
                 </div>
-                <!-- Filter Controls -->
-                <div class="flex flex-wrap items-center gap-3">
-                    <span class="text-xs text-gray-400 uppercase font-semibold">Categorías:</span>
-                    <button onclick="filterCategory('All')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white">Todos</button>
-                    <button onclick="filterCategory('Almacenamiento')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-border text-gray-300 hover:text-white">Almacenamiento</button>
-                    <button onclick="filterCategory('Procesadores')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-border text-gray-300 hover:text-white">Procesadores</button>
-                    <button onclick="filterCategory('Periféricos')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-border text-gray-300 hover:text-white">Periféricos</button>
-                </div>
+                <div id="categoryFilters" class="flex flex-wrap items-center gap-2"></div>
             </div>
-
-            <!-- Grid of Products -->
-            <div id="productGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Products rendered via JS -->
-            </div>
+            <div id="productGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
 
-        <!-- ================= SECCIÓN 2: INVENTARIO & DEPOSITOS ================= -->
+        <!-- ============ 2. STOCK POR DEPÓSITO (vw_StockPorDeposito) ============ -->
         <section id="tab-inventario" class="tab-content hidden space-y-6">
             <div class="bg-brand-card p-6 rounded-2xl border border-brand-border">
                 <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-boxes-stacked text-purple-400"></i> Control de Stock por Depósito
+                    <i class="fa-solid fa-boxes-stacked text-purple-400"></i> Existencias por depósito
                 </h2>
-                <p class="text-gray-400 text-sm">Visualización de la tabla relacional asociativa <code class="code-font text-purple-300">STOCK_DEPOSITO</code> (Relación N:M entre PRODUCTOS y DEPOSITOS).</p>
+                <p class="text-gray-400 text-sm">Tabla <code class="code-font text-purple-300">Stock</code> (relación N:M entre Producto y Depósito). Las cantidades solo cambian mediante movimientos de kardex: el trigger <code class="code-font text-amber-300">trg_MovimientoStock_AplicarKardex</code> las actualiza y <code class="code-font text-amber-300">trg_Stock_ControlarExistencias</code> controla la capacidad máxima.</p>
             </div>
-
-            <!-- Depósitos Cards -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Depósito Central -->
-                <div class="bg-brand-card rounded-2xl border border-brand-border p-5 space-y-4">
-                    <div class="flex items-center justify-between border-b border-brand-border/60 pb-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-lg bg-blue-900/40 text-blue-400 border border-blue-700/50 flex items-center justify-center">
-                                <i class="fa-solid fa-building shadow"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-white">Depósito Central</h3>
-                                <p class="text-xs text-gray-400">Av. Corrientes 1234, Posadas</p>
-                            </div>
-                        </div>
-                        <span class="text-xs bg-purple-950 text-purple-300 px-2.5 py-1 rounded-full border border-purple-800">Capacidad: 5,000 un.</span>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-[#110e1d] text-gray-400 uppercase font-semibold">
-                                <tr>
-                                    <th class="p-2.5">ID Producto</th>
-                                    <th class="p-2.5">Nombre</th>
-                                    <th class="p-2.5 text-right">Stock Disponible</th>
-                                </tr>
-                            </thead>
-                            <tbody id="depositoCentralBody" class="divide-y divide-brand-border/40 text-gray-300">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Depósito Norte -->
-                <div class="bg-brand-card rounded-2xl border border-brand-border p-5 space-y-4">
-                    <div class="flex items-center justify-between border-b border-brand-border/60 pb-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-900/40 text-emerald-400 border border-emerald-700/50 flex items-center justify-center">
-                                <i class="fa-solid fa-warehouse"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-white">Depósito Norte</h3>
-                                <p class="text-xs text-gray-400">Ruta 12 Km 7.5, Garupá</p>
-                            </div>
-                        </div>
-                        <span class="text-xs bg-emerald-950 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-800">Capacidad: 3,000 un.</span>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-[#110e1d] text-gray-400 uppercase font-semibold">
-                                <tr>
-                                    <th class="p-2.5">ID Producto</th>
-                                    <th class="p-2.5">Nombre</th>
-                                    <th class="p-2.5 text-right">Stock Disponible</th>
-                                </tr>
-                            </thead>
-                            <tbody id="depositoNorteBody" class="divide-y divide-brand-border/40 text-gray-300">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            <div id="depositGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
         </section>
 
-        <!-- ================= SECCIÓN 3: STORED PROCEDURE ================= -->
+        <!-- ============ 3. REGISTRAR VENTA (sp_RegistrarPedido) ============ -->
         <section id="tab-procedure" class="tab-content hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Form column -->
                 <div class="lg:col-span-6 bg-brand-card p-6 rounded-2xl border border-brand-border space-y-5">
                     <div>
                         <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-terminal text-purple-400"></i> Ejecutar Stored Procedure
+                            <i class="fa-solid fa-terminal text-purple-400"></i> Registrar venta
                         </h2>
-                        <p class="text-xs text-gray-400 mt-1">Simulación del procedimiento almacenado <code class="code-font text-purple-300">sp_RegistrarPedido(p_ClienteId, OUT p_NuevoPedidoId, OUT p_Mensaje)</code> con control transaccional.</p>
+                        <p class="text-xs text-gray-400 mt-1">Ejecuta <code class="code-font text-purple-300">dbo.sp_RegistrarPedido</code>: pedido, renglones con precio vigente y egreso de stock en una única transacción.</p>
                     </div>
 
                     <form id="procedureForm" onsubmit="executeStoredProcedure(event)" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Seleccionar Cliente (*)</label>
-                            <select id="spClienteId" class="w-full bg-[#110e1d] border border-brand-border rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-purple-500">
-                                <option value="1">Cliente ID #1 - Leandro Acosta (leandro.acosta@ucp.edu.ar)</option>
-                                <option value="2">Cliente ID #2 - Nahuel Villegas (nahuel.villegas@ucp.edu.ar)</option>
-                                <option value="999">Cliente ID #999 - INEXISTENTE (Simular Error/Rollback)</option>
-                            </select>
+                            <label for="spCliente" class="block text-xs font-semibold text-gray-300 uppercase mb-1">Cliente</label>
+                            <select id="spCliente" class="field" onchange="updateDireccionHint()"></select>
                         </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Items del Pedido</label>
-                            <div class="bg-[#110e1d] p-3 rounded-xl border border-brand-border space-y-2 text-xs text-gray-300">
-                                <div class="flex justify-between items-center py-1 border-b border-gray-800">
-                                    <span>Disco SSD NVMe 1TB (x2)</span>
-                                    <span class="font-mono text-purple-300">$ 90.000,00</span>
-                                </div>
-                                <div class="flex justify-between items-center py-1">
-                                    <span>Teclado Mecánico RGB (x1)</span>
-                                    <span class="font-mono text-purple-300">$ 25.000,00</span>
-                                </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="spVendedor" class="block text-xs font-semibold text-gray-300 uppercase mb-1">Vendedor (sucursal)</label>
+                                <select id="spVendedor" class="field" onchange="populateDepositos()"></select>
+                            </div>
+                            <div>
+                                <label for="spDeposito" class="block text-xs font-semibold text-gray-300 uppercase mb-1">Depósito de despacho</label>
+                                <select id="spDeposito" class="field"></select>
                             </div>
                         </div>
-
+                        <div>
+                            <label for="spCanal" class="block text-xs font-semibold text-gray-300 uppercase mb-1">Canal</label>
+                            <select id="spCanal" class="field" onchange="updateDireccionHint()">
+                                <option value="MOSTRADOR">MOSTRADOR (retira en el local)</option>
+                                <option value="WEB">WEB (envío a domicilio)</option>
+                                <option value="TELEFONO">TELÉFONO (envío a domicilio)</option>
+                            </select>
+                            <p id="spDireccionHint" class="text-[11px] text-gray-400 mt-1"></p>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-semibold text-gray-300 uppercase mb-1">Renglones (desde el carrito)</span>
+                            <div id="spItems" class="bg-[#110e1d] p-3 rounded-xl border border-brand-border space-y-2 text-xs text-gray-300"></div>
+                        </div>
                         <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play text-xs"></i> CALL sp_RegistrarPedido()
+                            <i class="fa-solid fa-play text-xs"></i> EXEC dbo.sp_RegistrarPedido
                         </button>
                     </form>
                 </div>
 
-                <!-- Code & Console Log column -->
                 <div class="lg:col-span-6 space-y-4">
-                    <!-- SQL Code Preview -->
                     <div class="bg-[#0f0c1b] p-4 rounded-2xl border border-brand-border space-y-2">
-                        <span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block">Código SQL del Stored Procedure</span>
-                        <pre class="code-font text-xs text-gray-300 overflow-x-auto p-3 bg-black/40 rounded-xl border border-purple-950/60 leading-relaxed">
-<span class="text-purple-400">CREATE PROCEDURE</span> sp_RegistrarPedido(
-    <span class="text-indigo-300">IN</span> p_ClienteId <span class="text-amber-300">INT</span>,
-    <span class="text-indigo-300">OUT</span> p_NuevoPedidoId <span class="text-amber-300">INT</span>,
-    <span class="text-indigo-300">OUT</span> p_Mensaje <span class="text-amber-300">VARCHAR</span>(255)
-)
-<span class="text-purple-400">BEGIN</span>
-    <span class="text-purple-400">START TRANSACTION</span>;
-    <span class="text-gray-500">-- Control de existencia de cliente</span>
-    <span class="text-purple-400">INSERT INTO</span> PEDIDOS (ClienteId, FechaPedido)
-    <span class="text-purple-400">VALUES</span> (p_ClienteId, CURRENT_TIMESTAMP);
-    <span class="text-purple-400">COMMIT</span>;
-<span class="text-purple-400">END</span>;</pre>
+                        <span class="text-xs font-semibold text-purple-400 uppercase tracking-wider block">Llamada T-SQL que envía la aplicación</span>
+                        <pre class="code-font text-xs text-gray-300 overflow-x-auto p-3 bg-black/40 rounded-xl border border-purple-950/60 leading-relaxed"><span class="text-purple-400">DECLARE</span> @PedidoId <span class="text-amber-300">INT</span>, @NroPedido <span class="text-amber-300">NVARCHAR</span>(16);
+<span class="text-purple-400">EXEC</span> dbo.sp_RegistrarPedido
+     @ClienteId = ?, @EmpleadoId = ?, @SucursalId = ?,
+     @DepositoId = ?, @Canal = ?, @NroDireccion = ?,
+     @ItemsJson = ?,   <span class="text-gray-500">-- [{"ProductoId":6,"Cantidad":2}]</span>
+     @PedidoId  = @PedidoId  <span class="text-indigo-300">OUTPUT</span>,
+     @NroPedido = @NroPedido <span class="text-indigo-300">OUTPUT</span>;
+<span class="text-gray-500">-- Dentro del SP: BEGIN TRANSACTION ... COMMIT,
+-- o ROLLBACK + THROW si falla cualquier control.</span></pre>
                     </div>
-
-                    <!-- Console output simulation -->
                     <div class="bg-brand-card p-4 rounded-2xl border border-brand-border space-y-2">
-                        <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider block flex items-center gap-2">
-                            <i class="fa-solid fa-terminal"></i> Salida de la Consola MySQL
+                        <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-terminal"></i> Salida del servidor
                         </span>
-                        
-                        <div id="spConsoleOutput" class="code-font text-xs text-emerald-300/90 p-3 bg-black/60 rounded-xl border border-emerald-950 h-28 overflow-y-auto custom-scrollbar leading-relaxed">
-                            > Motor MySQL listo. Esperando ejecución de CALL sp_RegistrarPedido...
-                        </div>
+                        <div id="spConsoleOutput" class="code-font text-xs text-emerald-300/90 p-3 bg-black/60 rounded-xl border border-emerald-950 h-40 overflow-y-auto custom-scrollbar leading-relaxed">&gt; SQL Server listo. Agregue productos al carrito y ejecute el procedimiento.</div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= SECCIÓN 4: TRIGGER & AUDITORÍA ================= -->
-        <section id="tab-trigger" class="tab-content hidden space-y-6">
+        <!-- ============ 4. PRECIOS (sp_ActualizarPrecioProducto + trigger) ============ -->
+        <section id="tab-precios" class="tab-content hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Form simulator -->
                 <div class="lg:col-span-5 bg-brand-card p-6 rounded-2xl border border-brand-border space-y-5">
                     <div>
                         <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-bolt text-amber-400"></i> Simular Disparo de Trigger
+                            <i class="fa-solid fa-bolt text-amber-400"></i> Cambiar precio de venta
                         </h2>
-                        <p class="text-xs text-gray-400 mt-1">El trigger <code class="code-font text-amber-300">trg_AuditarCambioPrecioProducto</code> (AFTER UPDATE) detectará cambios en el catálogo e insertará un registro en <code class="code-font text-purple-300">AUDITORIA_PRECIOS</code>.</p>
+                        <p class="text-xs text-gray-400 mt-1"><code class="code-font text-purple-300">sp_ActualizarPrecioProducto</code> cierra el período vigente y abre uno nuevo. El trigger <code class="code-font text-amber-300">trg_ProductoPrecio_ProtegerHistorial</code> impide modificar o borrar precios ya registrados.</p>
                     </div>
-
-                    <form onsubmit="executeTriggerSimulation(event)" class="space-y-4">
+                    <form onsubmit="executePriceUpdate(event)" class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Producto a Modificar</label>
-                            <select id="triggerProdId" onchange="updateCurrentPriceInput()" class="w-full bg-[#110e1d] border border-brand-border rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-purple-500">
-                                <!-- Populated dynamically -->
-                            </select>
+                            <label for="priceProdId" class="block text-xs font-semibold text-gray-300 uppercase mb-1">Producto</label>
+                            <select id="priceProdId" onchange="updateCurrentPriceInput()" class="field"></select>
                         </div>
-
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Precio Actual (OLD)</label>
-                                <input type="text" id="triggerPriceOld" readonly class="w-full bg-black/40 border border-brand-border rounded-xl px-3 py-2 text-sm font-mono text-gray-400 cursor-not-allowed">
+                                <label for="priceOld" class="block text-xs font-semibold text-gray-400 uppercase mb-1">Precio vigente</label>
+                                <input type="text" id="priceOld" readonly class="field font-mono text-gray-400 cursor-not-allowed">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-amber-300 uppercase mb-1">Nuevo Precio (NEW)</label>
-                                <input type="number" id="triggerPriceNew" step="500" required class="w-full bg-[#110e1d] border border-amber-500/50 rounded-xl px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-amber-400">
+                                <label for="priceNew" class="block text-xs font-semibold text-amber-300 uppercase mb-1">Nuevo precio</label>
+                                <input type="number" id="priceNew" min="0.01" step="0.01" required class="field font-mono">
                             </div>
                         </div>
-
                         <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-semibold py-3 rounded-xl shadow-lg shadow-amber-600/20 transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-pen-to-square"></i> UPDATE PRODUCTOS SET Precio = NEW
+                            <i class="fa-solid fa-pen-to-square"></i> EXEC dbo.sp_ActualizarPrecioProducto
                         </button>
                     </form>
                 </div>
-
-                <!-- Audit log table -->
                 <div class="lg:col-span-7 bg-brand-card p-6 rounded-2xl border border-brand-border space-y-4">
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-white text-base flex items-center gap-2">
-                            <i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Tabla AUDITORIA_PRECIOS
+                            <i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Historial de precios (ProductoPrecio)
                         </h3>
-                        <span class="text-xs bg-purple-950 text-purple-300 px-2 py-1 rounded-md border border-purple-800 font-mono">Disparador Activo</span>
+                        <span class="text-xs bg-purple-950 text-purple-300 px-2 py-1 rounded-md border border-purple-800 font-mono">últimos 30 períodos</span>
                     </div>
-
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-[#110e1d] text-gray-400 uppercase font-semibold">
                                 <tr>
-                                    <th class="p-3">Audit ID</th>
-                                    <th class="p-3">Prod. ID</th>
-                                    <th class="p-3">Precio Anterior</th>
-                                    <th class="p-3">Precio Nuevo</th>
-                                    <th class="p-3">Fecha & Usuario</th>
+                                    <th class="p-3">SKU</th><th class="p-3">Producto</th><th class="p-3">Desde</th>
+                                    <th class="p-3">Hasta</th><th class="p-3 text-right">Precio</th><th class="p-3">Situación</th>
                                 </tr>
                             </thead>
-                            <tbody id="auditTableBody" class="divide-y divide-brand-border/40 text-gray-300 font-mono">
-                                <!-- Populated dynamically -->
-                            </tbody>
+                            <tbody id="priceHistoryBody" class="divide-y divide-brand-border/40 text-gray-300 font-mono"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= SECCIÓN 5: REPORTES & VISTAS ================= -->
+        <!-- ============ 5. CARTERA DE CLIENTES (vw_ResumenVentasCliente) ============ -->
         <section id="tab-reportes" class="tab-content hidden space-y-6">
-            <!-- Metrics Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-xl bg-purple-900/40 border border-purple-600/40 text-purple-400 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div>
-                        <span class="text-xs text-gray-400 uppercase font-semibold">Clientes Registrados</span>
-                        <h4 class="text-2xl font-bold text-white mt-0.5">2</h4>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-900/40 border border-purple-600/40 text-purple-400 flex items-center justify-center text-xl"><i class="fa-solid fa-users"></i></div>
+                    <div><span class="text-xs text-gray-400 uppercase font-semibold">Clientes</span><h4 id="totalClientsCount" class="text-2xl font-bold text-white mt-0.5">–</h4></div>
                 </div>
-
                 <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-xl bg-indigo-900/40 border border-indigo-600/40 text-indigo-400 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-receipt"></i>
-                    </div>
-                    <div>
-                        <span class="text-xs text-gray-400 uppercase font-semibold">Pedidos Procesados</span>
-                        <h4 id="totalOrdersCount" class="text-2xl font-bold text-white mt-0.5">2</h4>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-900/40 border border-indigo-600/40 text-indigo-400 flex items-center justify-center text-xl"><i class="fa-solid fa-receipt"></i></div>
+                    <div><span class="text-xs text-gray-400 uppercase font-semibold">Ventas netas (fn_TotalCompradoCliente)</span><h4 id="totalRevenueText" class="text-2xl font-bold text-white mt-0.5">–</h4></div>
                 </div>
-
                 <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-900/40 border border-emerald-600/40 text-emerald-400 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-sack-dollar"></i>
-                    </div>
-                    <div>
-                        <span class="text-xs text-gray-400 uppercase font-semibold">Facturación Total (fn_*)</span>
-                        <h4 id="totalRevenueText" class="text-2xl font-bold text-emerald-400 mt-0.5">$ 115.000,00</h4>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-rose-900/40 border border-rose-600/40 text-rose-400 flex items-center justify-center text-xl"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div><span class="text-xs text-gray-400 uppercase font-semibold">Saldo a cobrar</span><h4 id="totalDebtText" class="text-2xl font-bold text-rose-300 mt-0.5">–</h4></div>
                 </div>
             </div>
-
-            <!-- View table: vw_ResumenVentasClientes -->
             <div class="bg-brand-card p-6 rounded-2xl border border-brand-border space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-brand-border pb-4">
                     <div>
-                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-table text-purple-400"></i> Vista: <code class="code-font text-purple-300">vw_ResumenVentasClientes</code>
-                        </h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Encapsulamiento SQL que combina clientes y utiliza la función almacenada <code class="code-font text-purple-300">fn_CalcularTotalGastoCliente()</code>.</p>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-table text-purple-400"></i> Vista <code class="code-font text-purple-300">vw_ResumenVentasCliente</code></h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Incluye clientes sin pedidos (LEFT JOIN), excluye pedidos cancelados y suma el saldo pendiente de sus facturas.</p>
                     </div>
                     <button onclick="refreshReportsView()" class="px-3 py-1.5 rounded-lg bg-brand-border text-xs font-semibold text-gray-200 hover:bg-purple-900/50 transition-colors flex items-center gap-2 self-start">
-                        <i class="fa-solid fa-rotate-right"></i> Refrescar Vista
+                        <i class="fa-solid fa-rotate-right"></i> Refrescar
                     </button>
                 </div>
-
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-[#110e1d] text-gray-400 uppercase font-semibold">
                             <tr>
-                                <th class="p-3">Cliente ID</th>
-                                <th class="p-3">Apellido, Nombre</th>
-                                <th class="p-3 text-center">Total Pedidos</th>
-                                <th class="p-3 text-right">Monto Total Histórico (Función SQL)</th>
+                                <th class="p-3">Cliente</th><th class="p-3">Documento</th><th class="p-3">Email</th>
+                                <th class="p-3 text-center">Pedidos</th><th class="p-3 text-right">Total comprado</th>
+                                <th class="p-3 text-right">Saldo pendiente</th>
                             </tr>
                         </thead>
-                        <tbody id="viewTableBody" class="divide-y divide-brand-border/40 text-gray-300">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="viewTableBody" class="divide-y divide-brand-border/40 text-gray-300"></tbody>
                     </table>
                 </div>
             </div>
         </section>
-
     </main>
 
-    <!-- Shopping Cart Modal -->
+    <!-- Carrito -->
     <div id="cartModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-brand-card border border-brand-border rounded-2xl max-w-lg w-full p-6 space-y-5 glow-purple">
             <div class="flex items-center justify-between border-b border-brand-border pb-3">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-cart-shopping text-purple-400"></i> Carrito de Compras
-                </h3>
-                <button onclick="toggleCartModal()" class="text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-purple-400"></i> Carrito</h3>
+                <button onclick="toggleCartModal()" class="text-gray-400 hover:text-white" aria-label="Cerrar"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-            <div id="cartItemsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
-                <!-- Cart items rendered dynamically -->
-            </div>
-
+            <div id="cartItemsList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar"></div>
             <div class="border-t border-brand-border pt-4 flex items-center justify-between text-base font-bold text-white">
-                <span>Total Estimado:</span>
+                <span>Total estimado (neto):</span>
                 <span id="cartTotalText" class="text-emerald-400 font-mono">$ 0,00</span>
             </div>
-
             <div class="flex space-x-3">
                 <button onclick="clearCart()" class="w-1/3 py-2.5 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 text-xs font-semibold">Vaciar</button>
-                <button onclick="checkoutCart()" class="w-2/3 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30">Confirmar Compra</button>
+                <button onclick="checkoutCart()" class="w-2/3 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-600/30">Continuar con la venta</button>
             </div>
         </div>
     </div>
 
-    <!-- Global Toast / Modal Message Notification -->
-    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 hidden max-w-md bg-brand-card border rounded-xl p-4 shadow-2xl flex items-start space-x-3 transition-all duration-300">
+    <!-- Notificaciones -->
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 hidden max-w-md bg-brand-card border rounded-xl p-4 shadow-2xl flex items-start space-x-3 transition-all duration-300" role="status">
         <div id="toastIcon" class="w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0"></div>
         <div>
             <h4 id="toastTitle" class="font-bold text-sm text-white">Notificación</h4>
@@ -469,391 +303,377 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-[#0b0914] border-t border-brand-border/60 py-6 text-center text-xs text-gray-500">
         <div class="max-w-7xl mx-auto px-4">
-            <p>StockFlow DB © 2026 — Proyecto Integrador AE4 | Base de Datos I - Universidad Cuenca del Plata (UCP)</p>
-            <p class="mt-1 text-gray-600">Desarrollado por Leandro Acosta & Nahuel Villegas — Cátedra Ing. Gladys Daniela Neuendorf</p>
+            <p>StockFlow © 2026 — Trabajo Final Integrador AE4 | Base de Datos — Universidad de la Cuenca del Plata (UCP)</p>
+            <p class="mt-1 text-gray-600">Leandro Acosta y Nahuel Villegas — Docente: Ing. Gladys Daniela Neuendorf</p>
         </div>
     </footer>
 
-    <!-- JavaScript Application Logic (Conectado a la Base de Datos MySQL) -->
     <script>
-        // Variables de Estado Globales
+        // URL base de la API PHP (XAMPP: C:\xampp\htdocs\stockflow\api).
+        const API = 'http://localhost/stockflow/api';
+
         let productsData = [];
-        let customersData = [];
-        let auditLogData = [];
+        let stockData = [];
+        let maestros = { clientes: [], vendedores: [], depositos: [] };
         let cart = [];
+        let currentCategory = 'Todas';
 
-        // Inicializar App al Cargar la Página
-        window.onload = function() {
-            cargarDatosDesdeBD();
-        };
+        const money = n => '$ ' + Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const qty = n => Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 3 });
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-        // Función Maestra para Cargar Datos desde la API REST (PHP / MySQL)
+        async function api(path, body) {
+            const opts = body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {};
+            const res = await fetch(`${API}/${path}`, opts);
+            const json = await res.json();
+            if (json.status !== 'success') {
+                const err = new Error(json.message || 'Error desconocido');
+                err.code = json.code;
+                throw err;
+            }
+            return json;
+        }
+
+        window.onload = () => cargarDatosDesdeBD();
+
         async function cargarDatosDesdeBD() {
             try {
-                // 1. Cargar Productos
-                const resProd = await fetch('http://localhost/stockflow/api/productos.php');
-                const jsonProd = await resProd.json();
-                if (jsonProd.status === 'success') {
-                    productsData = jsonProd.data.map(p => ({
-                        id: parseInt(p.ProductoId),
-                        name: p.Producto,
-                        category: p.Categoria,
-                        price: parseFloat(p.Precio),
-                        stockCentral: parseInt(p.StockTotal) || 0,
-                        stockNorte: 0,
-                        image: "https://placehold.co/400x250/1e1938/a78bfa?text=" + encodeURIComponent(p.Producto)
-                    }));
-                }
-
-                // 2. Cargar Resumen de Ventas / Clientes desde la Vista
-                const resView = await fetch('http://localhost/stockflow/api/resumen_ventas.php');
-                const jsonView = await resView.json();
-                if (jsonView.status === 'success') {
-                    customersData = jsonView.data.map(c => ({
-                        id: parseInt(c.ClienteId),
-                        name: c.Cliente,
-                        ordersCount: parseInt(c.TotalPedidos) || 0,
-                        totalSpent: parseFloat(c.MontoTotalHistorico) || 0
-                    }));
-                }
-
-                // Renderizar componentes visuales con datos reales
-                renderProducts('All');
+                const [prod, stock, mae] = await Promise.all([api('productos.php'), api('stock.php'), api('maestros.php')]);
+                productsData = prod.data.map(p => ({
+                    id: parseInt(p.ProductoId), sku: p.Sku, name: p.Producto, category: p.Categoria,
+                    brand: p.Marca, price: p.PrecioVigente === null ? null : parseFloat(p.PrecioVigente),
+                    stock: parseFloat(p.StockTotal) || 0, supplier: p.ProveedorPreferido
+                }));
+                stockData = stock.data;
+                maestros = mae.data;
+                setDbStatus(true);
+                renderCategoryFilters();
+                renderProducts();
                 renderStockTables();
-                populateTriggerSelect();
-                renderAuditLog();
-                renderReportsView();
-
+                populateSaleForm();
+                populatePriceSelect();
+                await Promise.all([loadPriceHistory(), loadReportsView()]);
             } catch (error) {
-                console.error("Error al conectar con la API de XAMPP:", error);
-                showToast('Error de Conexión', 'No se pudo conectar con el servidor local de MySQL.', 'error');
+                console.error('Error al conectar con la API:', error);
+                setDbStatus(false);
+                showToast('Error de conexión', 'No se pudo obtener datos de SQL Server: ' + error.message, 'error');
             }
         }
 
-        // Navigation Tabs Controller
+        function setDbStatus(ok) {
+            const box = document.getElementById('dbStatus');
+            box.className = 'hidden md:flex items-center space-x-2 text-xs px-3 py-1.5 rounded-full border ' +
+                (ok ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/40' : 'bg-rose-950/60 text-rose-400 border-rose-800/40');
+            document.getElementById('dbStatusDot').className = 'w-2 h-2 rounded-full ' + (ok ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400');
+            document.getElementById('dbStatusText').innerText = ok ? 'SQL Server: StockFlow (conectado)' : 'SQL Server: sin conexión';
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
-
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('text-purple-400', 'bg-brand-card', 'border', 'border-purple-500/30');
                 btn.classList.add('text-gray-400', 'hover:text-gray-200');
             });
-
             const activeBtn = document.getElementById('nav-' + tabId);
             activeBtn.classList.add('text-purple-400', 'bg-brand-card', 'border', 'border-purple-500/30');
             activeBtn.classList.remove('text-gray-400');
+            if (tabId === 'tab-procedure') renderSaleItems();
         }
 
-        // Render Product Catalog
-        function renderProducts(categoryFilter) {
+        // ---------- Catálogo ----------
+        function renderCategoryFilters() {
+            const cats = ['Todas', ...new Set(productsData.map(p => p.category))];
+            const box = document.getElementById('categoryFilters');
+            box.innerHTML = '<span class="text-xs text-gray-400 uppercase font-semibold mr-1">Categorías:</span>';
+            cats.forEach(c => {
+                const b = document.createElement('button');
+                b.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold ' +
+                    (c === currentCategory ? 'bg-purple-600 text-white' : 'bg-brand-border text-gray-300 hover:text-white');
+                b.textContent = c;
+                b.onclick = () => { currentCategory = c; renderCategoryFilters(); renderProducts(); };
+                box.appendChild(b);
+            });
+        }
+
+        function renderProducts() {
             const container = document.getElementById('productGrid');
-            container.innerHTML = '';
-
-            const filtered = categoryFilter === 'All' 
-                ? productsData 
-                : productsData.filter(p => p.category === categoryFilter);
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-8">No hay productos en esta categoría.</p>`;
+            const list = currentCategory === 'Todas' ? productsData : productsData.filter(p => p.category === currentCategory);
+            if (list.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-400 col-span-full text-center py-8">No hay productos en esta categoría.</p>';
                 return;
             }
-
-            filtered.forEach(p => {
-                const totalStock = p.stockCentral + p.stockNorte;
-                const card = document.createElement('div');
-                card.className = "bg-brand-card rounded-2xl border border-brand-border overflow-hidden hover:border-purple-500/50 transition-all flex flex-col justify-between";
-                card.innerHTML = `
-                    <div>
-                        <img src="${p.image}" alt="${p.name}" class="w-full h-44 object-cover">
-                        <div class="p-5 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-semibold bg-purple-950 text-purple-300 px-2.5 py-0.5 rounded-full border border-purple-800/60">${p.category}</span>
-                                <span class="text-xs text-gray-400">Stock Total: <strong class="text-white">${totalStock} un.</strong></span>
-                            </div>
-                            <h3 class="font-bold text-white text-base">${p.name}</h3>
-                            <p class="text-xl font-bold text-emerald-400 font-mono">$ ${p.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+            container.innerHTML = list.map(p => {
+                const vendible = p.price !== null && p.stock > 0;
+                const motivo = p.price === null ? 'Sin precio vigente' : (p.stock <= 0 ? 'Sin stock' : '');
+                return `
+                <div class="bg-brand-card rounded-2xl border border-brand-border hover:border-purple-500/50 transition-all flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold bg-purple-950 text-purple-300 px-2.5 py-0.5 rounded-full border border-purple-800/60">${esc(p.category)}</span>
+                            <span class="text-xs text-gray-400">Stock: <strong class="text-white">${qty(p.stock)} un.</strong></span>
                         </div>
+                        <h3 class="font-bold text-white text-base">${esc(p.name)}</h3>
+                        <p class="text-xs text-gray-400 font-mono">${esc(p.sku)} · ${esc(p.brand)}</p>
+                        <p class="text-xl font-bold font-mono ${p.price === null ? 'text-gray-500' : 'text-emerald-400'}">${p.price === null ? 'Sin precio' : money(p.price)}</p>
+                        <p class="text-[11px] text-gray-500">Proveedor preferido: ${esc(p.supplier)}</p>
                     </div>
                     <div class="p-5 pt-0">
-                        <button onclick="addToCart(${p.id})" class="w-full bg-brand-border hover:bg-purple-600 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-cart-plus"></i> Agregar al Carrito
+                        <button ${vendible ? '' : 'disabled'} onclick="addToCart(${p.id})"
+                            class="w-full ${vendible ? 'bg-brand-border hover:bg-purple-600 text-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'} text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid ${vendible ? 'fa-cart-plus' : 'fa-ban'}"></i> ${vendible ? 'Agregar al carrito' : motivo}
                         </button>
                     </div>
-                `;
-                container.appendChild(card);
-            });
+                </div>`;
+            }).join('');
         }
 
-        // Filter Categories
-        function filterCategory(cat) {
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.classList.remove('bg-purple-600', 'text-white');
-                btn.classList.add('bg-brand-border', 'text-gray-300');
-            });
-            event.target.classList.add('bg-purple-600', 'text-white');
-            event.target.classList.remove('bg-brand-border', 'text-gray-300');
-            renderProducts(cat);
-        }
-
-        // Cart Actions
+        // ---------- Carrito ----------
         function addToCart(productId) {
             const product = productsData.find(p => p.id === productId);
-            const existing = cart.find(item => item.id === productId);
-
-            if (existing) {
-                existing.qty += 1;
-            } else {
-                cart.push({ ...product, qty: 1 });
-            }
-
+            const existing = cart.find(i => i.id === productId);
+            if (existing) existing.qty += 1; else cart.push({ ...product, qty: 1 });
             updateCartUI();
-            showToast('Item Agregado', `${product.name} añadido al carrito.`, 'success');
+            showToast('Producto agregado', `${product.name} añadido al carrito.`, 'success');
         }
 
         function updateCartUI() {
             const badge = document.getElementById('cartBadge');
-            const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
-            
-            if (totalItems > 0) {
-                badge.innerText = totalItems;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-
+            const totalItems = cart.reduce((a, i) => a + i.qty, 0);
+            badge.innerText = totalItems;
+            badge.classList.toggle('hidden', totalItems === 0);
             const list = document.getElementById('cartItemsList');
-            list.innerHTML = '';
             let total = 0;
-
-            if (cart.length === 0) {
-                list.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">El carrito está vacío.</p>`;
-            } else {
-                cart.forEach(item => {
-                    const subtotal = item.price * item.qty;
-                    total += subtotal;
-                    list.innerHTML += `
-                        <div class="flex items-center justify-between bg-[#110e1d] p-3 rounded-xl border border-brand-border text-xs">
-                            <div>
-                                <h4 class="font-bold text-white">${item.name}</h4>
-                                <span class="text-gray-400">$ ${item.price.toLocaleString('es-AR')} x ${item.qty}</span>
-                            </div>
-                            <span class="font-mono text-emerald-400 font-semibold">$ ${subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
-                        </div>
-                    `;
-                });
-            }
-
-            document.getElementById('cartTotalText').innerText = `$ ${total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            list.innerHTML = cart.length === 0
+                ? '<p class="text-xs text-gray-400 text-center py-4">El carrito está vacío.</p>'
+                : cart.map(i => {
+                    const sub = i.price * i.qty; total += sub;
+                    return `<div class="flex items-center justify-between bg-[#110e1d] p-3 rounded-xl border border-brand-border text-xs">
+                        <div><h4 class="font-bold text-white">${esc(i.name)}</h4><span class="text-gray-400">${money(i.price)} x ${i.qty}</span></div>
+                        <span class="font-mono text-emerald-400 font-semibold">${money(sub)}</span></div>`;
+                }).join('');
+            document.getElementById('cartTotalText').innerText = money(total);
+            renderSaleItems();
         }
 
-        function toggleCartModal() {
-            document.getElementById('cartModal').classList.toggle('hidden');
-        }
-
-        function clearCart() {
-            cart = [];
-            updateCartUI();
-        }
+        function toggleCartModal() { document.getElementById('cartModal').classList.toggle('hidden'); }
+        function clearCart() { cart = []; updateCartUI(); }
 
         function checkoutCart() {
-            if (cart.length === 0) {
-                showToast('Carrito Vacío', 'Agregue productos antes de realizar la compra.', 'error');
-                return;
-            }
+            if (cart.length === 0) { showToast('Carrito vacío', 'Agregue productos antes de continuar.', 'error'); return; }
             toggleCartModal();
             switchTab('tab-procedure');
-            showToast('Redirigiendo', 'Complete la ejecución de sp_RegistrarPedido() para confirmar.', 'info');
         }
 
-        // Render Stock Tables
+        // ---------- Stock por depósito ----------
         function renderStockTables() {
-            const centralBody = document.getElementById('depositoCentralBody');
-            const norteBody = document.getElementById('depositoNorteBody');
-
-            centralBody.innerHTML = '';
-            norteBody.innerHTML = '';
-
-            productsData.forEach(p => {
-                centralBody.innerHTML += `
-                    <tr>
-                        <td class="p-2.5 font-mono">#${p.id}</td>
-                        <td class="p-2.5 font-semibold text-white">${p.name}</td>
-                        <td class="p-2.5 text-right font-mono text-purple-300 font-bold">${p.stockCentral} un.</td>
-                    </tr>
-                `;
-            });
+            const grid = document.getElementById('depositGrid');
+            const porDeposito = {};
+            stockData.forEach(r => { (porDeposito[r.DepositoId] ??= []).push(r); });
+            const badge = e => e === 'OK' ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+                : e === 'BAJO MINIMO' ? 'bg-amber-950 text-amber-300 border-amber-800' : 'bg-rose-950 text-rose-300 border-rose-800';
+            grid.innerHTML = Object.values(porDeposito).map(rows => {
+                const d = rows[0];
+                const cap = d.CapacidadMaxima ? `${qty(d.OcupacionActual)} / ${qty(d.CapacidadMaxima)} un.` : 'sin límite';
+                return `
+                <div class="bg-brand-card rounded-2xl border border-brand-border p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-brand-border/60 pb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-900/40 text-blue-400 border border-blue-700/50 flex items-center justify-center"><i class="fa-solid fa-warehouse"></i></div>
+                            <div><h3 class="font-bold text-white">${esc(d.Deposito)}</h3><p class="text-xs text-gray-400">${esc(d.Sucursal)}</p></div>
+                        </div>
+                        <span class="text-xs bg-purple-950 text-purple-300 px-2.5 py-1 rounded-full border border-purple-800">Ocupación: ${cap}</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-[#110e1d] text-gray-400 uppercase font-semibold">
+                                <tr><th class="p-2.5">SKU</th><th class="p-2.5">Producto</th><th class="p-2.5 text-right">Cantidad</th><th class="p-2.5 text-right">Mínimo</th><th class="p-2.5">Estado</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-brand-border/40 text-gray-300">
+                                ${rows.map(r => `<tr>
+                                    <td class="p-2.5 font-mono">${esc(r.Sku)}</td>
+                                    <td class="p-2.5 font-semibold text-white">${esc(r.Producto)}</td>
+                                    <td class="p-2.5 text-right font-mono text-purple-300 font-bold">${qty(r.Cantidad)}</td>
+                                    <td class="p-2.5 text-right font-mono">${qty(r.StockMinimo)}</td>
+                                    <td class="p-2.5"><span class="px-2 py-0.5 rounded-full border text-[10px] ${badge(r.EstadoStock)}">${esc(r.EstadoStock)}</span></td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
-        // Stored Procedure Real Execution (sp_RegistrarPedido vía PHP)
+        // ---------- Registrar venta ----------
+        function populateSaleForm() {
+            document.getElementById('spCliente').innerHTML = maestros.clientes.map(c =>
+                `<option value="${c.ClienteId}">${esc(c.Cliente)} — ${esc(c.Documento)}</option>`).join('');
+            document.getElementById('spVendedor').innerHTML = maestros.vendedores.map(v =>
+                `<option value="${v.EmpleadoId}" data-sucursal="${v.SucursalId}">${esc(v.Empleado)} (${esc(v.Rol)}) — ${esc(v.Sucursal)}</option>`).join('');
+            populateDepositos();
+            updateDireccionHint();
+            renderSaleItems();
+        }
+
+        function selectedSucursal() {
+            const opt = document.getElementById('spVendedor').selectedOptions[0];
+            return opt ? parseInt(opt.dataset.sucursal) : null;
+        }
+
+        function populateDepositos() {
+            const suc = selectedSucursal();
+            document.getElementById('spDeposito').innerHTML = maestros.depositos
+                .filter(d => parseInt(d.SucursalId) === suc)
+                .map(d => `<option value="${d.DepositoId}">${esc(d.Nombre)}</option>`).join('');
+        }
+
+        function selectedCliente() {
+            const id = parseInt(document.getElementById('spCliente').value);
+            return maestros.clientes.find(c => parseInt(c.ClienteId) === id);
+        }
+
+        function updateDireccionHint() {
+            const canal = document.getElementById('spCanal').value;
+            const c = selectedCliente();
+            const hint = document.getElementById('spDireccionHint');
+            if (canal === 'MOSTRADOR') hint.textContent = 'Sin dirección de envío (retira en el local).';
+            else hint.textContent = c && c.NroDireccion ? `Envío a la dirección principal: ${c.Direccion}` : 'El cliente no tiene dirección registrada: el procedimiento rechazará la venta.';
+        }
+
+        function renderSaleItems() {
+            const box = document.getElementById('spItems');
+            if (!box) return;
+            box.innerHTML = cart.length === 0
+                ? '<p class="text-gray-500">El carrito está vacío: agregue productos desde el catálogo.</p>'
+                : cart.map(i => `<div class="flex justify-between items-center py-1 border-b border-gray-800 last:border-0">
+                    <span>${esc(i.name)} (x${i.qty})</span><span class="font-mono text-purple-300">${money(i.price * i.qty)}</span></div>`).join('');
+        }
+
+        function logConsole(html) {
+            const box = document.getElementById('spConsoleOutput');
+            box.innerHTML += '<br>' + html;
+            box.scrollTop = box.scrollHeight;
+        }
+
         async function executeStoredProcedure(e) {
             e.preventDefault();
-            const clienteId = parseInt(document.getElementById('spClienteId').value);
-            const consoleBox = document.getElementById('spConsoleOutput');
-
-            consoleBox.innerHTML += `<br>> Executing: CALL sp_RegistrarPedido(${clienteId}, @p_NuevoPedidoId, @p_Mensaje);`;
-
+            const canal = document.getElementById('spCanal').value;
+            const cliente = selectedCliente();
+            const body = {
+                cliente_id: parseInt(document.getElementById('spCliente').value),
+                empleado_id: parseInt(document.getElementById('spVendedor').value),
+                sucursal_id: selectedSucursal(),
+                deposito_id: parseInt(document.getElementById('spDeposito').value),
+                canal: canal,
+                nro_direccion: canal === 'MOSTRADOR' ? null : (cliente ? cliente.NroDireccion : null),
+                items: cart.map(i => ({ ProductoId: i.id, Cantidad: i.qty, DescuentoPct: 0 }))
+            };
+            logConsole(`&gt; EXEC dbo.sp_RegistrarPedido @ClienteId=${body.cliente_id}, @Canal='${esc(canal)}', @ItemsJson='${esc(JSON.stringify(body.items))}' ...`);
             try {
-                const res = await fetch('http://localhost/stockflow/api/registrar_pedido.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cliente_id: clienteId })
-                });
-                const json = await res.json();
-
-                if (json.status === 'success') {
-                    consoleBox.innerHTML += `<br><span class="text-emerald-400">> [COMMIT] ${json.message} Transacción completada en MySQL.</span>`;
-                    showToast('Transacción Exitosa', json.message, 'success');
-                    cargarDatosDesdeBD();
-                    clearCart();
-                } else {
-                    consoleBox.innerHTML += `<br><span class="text-rose-400">> [ROLLBACK] ${json.message} Transacción abortada.</span>`;
-                    showToast('Transacción Fallida', json.message, 'error');
-                }
-            } catch (error) {
-                console.error("Error al ejecutar procedimiento:", error);
-                showToast('Error', 'Fallo de comunicación con la base de datos.', 'error');
+                const r = await api('registrar_pedido.php', body);
+                logConsole(`<span class="text-emerald-400">&gt; [COMMIT] ${esc(r.message)}</span>`);
+                showToast('Venta registrada', r.message, 'success');
+                clearCart();
+                await cargarDatosDesdeBD();
+            } catch (err) {
+                logConsole(`<span class="text-rose-400">&gt; [ROLLBACK] Msg ${esc(err.code ?? '')}: ${esc(err.message)}</span>`);
+                showToast('Venta rechazada', err.message, 'error');
             }
         }
 
-        // Trigger & Audit Simulation
-        function populateTriggerSelect() {
-            const select = document.getElementById('triggerProdId');
-            select.innerHTML = '';
-            productsData.forEach(p => {
-                select.innerHTML += `<option value="${p.id}">${p.name} (ID #${p.id})</option>`;
-            });
+        // ---------- Precios ----------
+        function populatePriceSelect() {
+            const sel = document.getElementById('priceProdId');
+            const prev = sel.value;
+            sel.innerHTML = productsData.map(p => `<option value="${p.id}">${esc(p.sku)} — ${esc(p.name)}</option>`).join('');
+            if (prev) sel.value = prev;
             updateCurrentPriceInput();
         }
 
         function updateCurrentPriceInput() {
-            const prodId = parseInt(document.getElementById('triggerProdId').value);
-            const product = productsData.find(p => p.id === prodId);
-            if (product) {
-                document.getElementById('triggerPriceOld').value = `$ ${product.price.toLocaleString('es-AR')}`;
-                document.getElementById('triggerPriceNew').value = product.price;
-            }
+            const p = productsData.find(x => x.id === parseInt(document.getElementById('priceProdId').value));
+            if (!p) return;
+            document.getElementById('priceOld').value = p.price === null ? 'Sin precio' : money(p.price);
+            document.getElementById('priceNew').value = p.price ?? '';
         }
 
-        function executeTriggerSimulation(e) {
+        async function executePriceUpdate(e) {
             e.preventDefault();
-            const prodId = parseInt(document.getElementById('triggerProdId').value);
-            const newPrice = parseFloat(document.getElementById('triggerPriceNew').value);
-            const product = productsData.find(p => p.id === prodId);
-
-            if (newPrice === product.price) {
-                showToast('Sin Cambios', 'El precio ingresado es igual al actual.', 'info');
-                return;
-            }
-
-            const oldPrice = product.price;
-            product.price = newPrice;
-
-            const newAudit = {
-                id: auditLogData.length + 1,
-                productId: prodId,
-                oldPrice: oldPrice,
-                newPrice: newPrice,
-                date: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                user: "root@localhost"
+            const body = {
+                producto_id: parseInt(document.getElementById('priceProdId').value),
+                precio_venta: parseFloat(document.getElementById('priceNew').value)
             };
-            auditLogData.unshift(newAudit);
-
-            renderAuditLog();
-            renderProducts('All');
-            updateCurrentPriceInput();
-            showToast('Trigger Disparado', `trg_AuditarCambioPrecioProducto registró el cambio de precio en MySQL.`, 'warning');
-        }
-
-        function renderAuditLog() {
-            const body = document.getElementById('auditTableBody');
-            body.innerHTML = '';
-            if (auditLogData.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">Sin registros de auditoría recientes.</td></tr>`;
-                return;
+            try {
+                const r = await api('actualizar_precio.php', body);
+                showToast('Precio actualizado', r.message, 'warning');
+                await cargarDatosDesdeBD();
+            } catch (err) {
+                showToast('Cambio rechazado', err.message, 'error');
             }
-            auditLogData.forEach(a => {
-                body.innerHTML += `
-                    <tr>
-                        <td class="p-3 font-bold text-purple-400">#${a.id}</td>
-                        <td class="p-3">Prod #${a.productId}</td>
-                        <td class="p-3 text-rose-300 font-semibold">$ ${a.oldPrice.toLocaleString('es-AR')}</td>
-                        <td class="p-3 text-emerald-300 font-semibold">$ ${a.newPrice.toLocaleString('es-AR')}</td>
-                        <td class="p-3 text-gray-400 text-[10px]">${a.date}<br><span class="text-purple-300">${a.user}</span></td>
-                    </tr>
-                `;
-            });
         }
 
-        // Reports View Renderer (Datos desde la Vista MySQL)
-        function renderReportsView() {
-            const body = document.getElementById('viewTableBody');
-            body.innerHTML = '';
+        async function loadPriceHistory() {
+            const r = await api('historial_precios.php');
+            document.getElementById('priceHistoryBody').innerHTML = r.data.map(h => `
+                <tr>
+                    <td class="p-3">${esc(h.Sku)}</td>
+                    <td class="p-3 font-sans">${esc(h.Producto)}</td>
+                    <td class="p-3">${esc(h.FechaDesde)}</td>
+                    <td class="p-3">${h.FechaHasta ? esc(h.FechaHasta) : '—'}</td>
+                    <td class="p-3 text-right ${h.Situacion === 'VIGENTE' ? 'text-emerald-300' : 'text-gray-400'}">${money(h.PrecioVenta)}</td>
+                    <td class="p-3 text-[10px]">${esc(h.Situacion)}</td>
+                </tr>`).join('');
+        }
 
-            let grandTotal = 0;
-            let grandOrders = 0;
-
-            customersData.forEach(c => {
-                grandTotal += c.totalSpent;
-                grandOrders += c.ordersCount;
-
-                body.innerHTML += `
-                    <tr>
-                        <td class="p-3 font-mono font-bold text-purple-400">#${c.id}</td>
-                        <td class="p-3 font-semibold text-white">${c.name}</td>
-                        <td class="p-3 text-center font-mono">${c.ordersCount}</td>
-                        <td class="p-3 text-right font-mono text-emerald-400 font-bold">$ ${c.totalSpent.toLocaleString('es-AR', {minimumFractionDigits: 2})}</td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById('totalOrdersCount').innerText = grandOrders;
-            document.getElementById('totalRevenueText').innerText = `$ ${grandTotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+        // ---------- Cartera de clientes ----------
+        async function loadReportsView() {
+            const r = await api('resumen_ventas.php');
+            let total = 0, deuda = 0;
+            document.getElementById('viewTableBody').innerHTML = r.data.map(c => {
+                total += parseFloat(c.TotalComprado) || 0;
+                deuda += parseFloat(c.SaldoPendiente) || 0;
+                return `<tr>
+                    <td class="p-3 font-semibold text-white">${esc(c.Cliente)}</td>
+                    <td class="p-3 font-mono">${esc(c.Documento)}</td>
+                    <td class="p-3">${esc(c.Email)}</td>
+                    <td class="p-3 text-center font-mono">${esc(c.CantidadPedidos)}</td>
+                    <td class="p-3 text-right font-mono text-emerald-400 font-bold">${money(c.TotalComprado)}</td>
+                    <td class="p-3 text-right font-mono ${parseFloat(c.SaldoPendiente) > 0 ? 'text-rose-300' : 'text-gray-500'}">${money(c.SaldoPendiente)}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('totalClientsCount').innerText = r.data.length;
+            document.getElementById('totalRevenueText').innerText = money(total);
+            document.getElementById('totalDebtText').innerText = money(deuda);
         }
 
         async function refreshReportsView() {
-            await cargarDatosDesdeBD();
-            showToast('Vista Actualizada', 'vw_ResumenVentasClientes consultada exitosamente desde MySQL.', 'info');
+            try {
+                await loadReportsView();
+                showToast('Vista actualizada', 'vw_ResumenVentasCliente consultada en SQL Server.', 'info');
+            } catch (err) {
+                showToast('Error', err.message, 'error');
+            }
         }
 
-        // Toast Notification System
+        // ---------- Notificaciones ----------
         function showToast(title, message, type = 'info') {
             const toast = document.getElementById('toastNotification');
             const icon = document.getElementById('toastIcon');
-            const tTitle = document.getElementById('toastTitle');
-            const tMsg = document.getElementById('toastMessage');
-
-            toast.className = "fixed bottom-6 right-6 z-50 hidden max-w-md bg-brand-card border rounded-xl p-4 shadow-2xl flex items-start space-x-3 transition-all duration-300";
-
-            if (type === 'success') {
-                toast.classList.add('border-emerald-500/50');
-                icon.className = "w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0 bg-emerald-950 text-emerald-400 border border-emerald-800";
-                icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
-            } else if (type === 'error') {
-                toast.classList.add('border-rose-500/50');
-                icon.className = "w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0 bg-rose-950 text-rose-400 border border-rose-800";
-                icon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
-            } else if (type === 'warning') {
-                toast.classList.add('border-amber-500/50');
-                icon.className = "w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0 bg-amber-950 text-amber-400 border border-amber-800";
-                icon.innerHTML = `<i class="fa-solid fa-bolt"></i>`;
-            } else {
-                toast.classList.add('border-purple-500/50');
-                icon.className = "w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0 bg-purple-950 text-purple-400 border border-purple-800";
-                icon.innerHTML = `<i class="fa-solid fa-info"></i>`;
-            }
-
-            tTitle.innerText = title;
-            tMsg.innerText = message;
-
-            toast.classList.remove('hidden');
-
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 4000);
+            const styles = {
+                success: ['border-emerald-500/50', 'bg-emerald-950 text-emerald-400 border border-emerald-800', 'fa-circle-check'],
+                error: ['border-rose-500/50', 'bg-rose-950 text-rose-400 border border-rose-800', 'fa-triangle-exclamation'],
+                warning: ['border-amber-500/50', 'bg-amber-950 text-amber-400 border border-amber-800', 'fa-bolt'],
+                info: ['border-purple-500/50', 'bg-purple-950 text-purple-400 border border-purple-800', 'fa-info']
+            }[type] || [];
+            toast.className = 'fixed bottom-6 right-6 z-50 max-w-md bg-brand-card border rounded-xl p-4 shadow-2xl flex items-start space-x-3 transition-all duration-300 ' + styles[0];
+            icon.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0 ' + styles[1];
+            icon.innerHTML = `<i class="fa-solid ${styles[2]}"></i>`;
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            clearTimeout(showToast.t);
+            showToast.t = setTimeout(() => toast.classList.add('hidden'), 4500);
         }
     </script>
 </body>
